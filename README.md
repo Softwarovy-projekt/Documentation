@@ -235,6 +235,10 @@ We also make static analysis of CIL code before first run of each method to dete
 
 #### Type resolution
 
+> Overview of caches
+
+![caches](./img/Cache.png)
+
 We need to resolve referenced metadata during CIL interpretation frequently.
 Although, there are many kinds of references that are resolved differently.
 We choose a way to keep the related things together and introduced `SymbolResolver` which is used everywhere, where we need to resolve `AssemblySymbol`, `TypeSymbol`, `MethodSymbol`, and `FieldSymbol`.
