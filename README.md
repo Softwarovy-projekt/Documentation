@@ -48,8 +48,8 @@ The project solution contains four modules:
 - **tests** - It contains a custom framework for testing end-to-end tests taking *.cs* sources, compiling them, executing them in the interpreter, and asserting the results. 
 
 > Overview of CILOSTAZOL project architecture
-
-![architecture_overview](./img/CILOSTAZOL.png)
+>
+> ![architecture_overview](./img/CILOSTAZOL.png)
 
 Although the detailed description of interpreting CIL will be given later, we also provide a brief overview of the pipeline to make understanding each part of the process easier.
 We compute everything lazily in CILOSTAZOL, however, we use the arrows in the picture in the opposite direction to indicate data flow.
@@ -65,8 +65,8 @@ During the evaluation of the code, there is a need to resolve symbols referred i
 In the end, because some methods from the standard library use unsafe code or other constructs which are not supported by the CILOSTAZOL, we provide a custom implementation of commonly used methods used in our benchmarks to be able to use them.
 
 > Overview of .dll pipeline
-
-![pipeline](./img/Pipeline.png)
+>
+> ![pipeline](./img/Pipeline.png)
 
 ### Parser
 
@@ -122,8 +122,8 @@ Symbols can be divided into three categories:
 - **.dll related symbols** - Blue-colored symbols in the picture
 
 > Overview of symbols
-
-![symbols](./img/TypeSystem.png)
+>
+> ![symbols](./img/TypeSystem.png)
 
 All symbols have a common predecessor, `Symbol`. 
 For testing purposes, the symbol currently contains only one method used to get the `CILOSTAZOLContext`. The reason is given in the tests section.
@@ -229,15 +229,28 @@ We also make static analysis of CIL code before first run of each method to dete
 
 #### CIL interpretation
 
-- initializing frame
-- switch
-- interesting opcodes (unsigned arithmetics, references, multiarrays, string loading)
+As we mentioned before, we use typical `BytecodeNode` for interpreting CIL.
+Besides the main loop in the node, we use the `CILOSTAZOLFrame` class responsible for manipulation with the frame.
+
+> Overview of getting info about current types on the stack.
+>
+>![types](./img/Frame.png)
+
+We using the static API of pushing and popping values in `VirtualFrame`.
+Most of the time, instruction type hints to us what kind of type will be pushed to the frame or popped from it.
+Although, during the initializing frame, executing arithmetic instructions, or calling virtual methods, we don't know the types of values which we work with.
+In order to find it, there are three sources where we can get the info.
+In the first situation, we use symbols contained in the defining method, which are able to give us which type is on the frame.
+In the second situation, we use results from the static analysis, which determines the type of arguments, which we will work with.
+And the last source is to use the stored `TypeSymbol` contained in `StaticObject` if it is a static object.
+
+> TODO: interesting opcodes (unsigned arithmetics, references, multiarrays, string loading, structs)
 
 #### Type resolution
 
 > Overview of caches
-
-![caches](./img/Cache.png)
+> 
+> ![caches](./img/Cache.png)
 
 We need to resolve referenced metadata during CIL interpretation frequently.
 Although, there are many kinds of references that are resolved differently.
