@@ -111,19 +111,91 @@ More info about `SymbolResolver` can be found in the type system section.
 
 ### Type system
 
-> TODO:
-> - Symbols
-> - SymbolResolver
-> - Context
-> - Strings
-> - Arrays
-> - STDLIB
+In this section, we describe the system of symbols heavily used in CILOSTAZOL to represent CIL components. We also talk about how cil application data are represented during the runtime. 
+
+#### Symbols
+
+Symbols can be divided into three categories:
+
+- **Method-related symbols** - Red-colored symbols in the picture
+- **Type-related symbols** - Yellow-colored symbols in the picture
+- **.dll related symbols** - Blue-colored symbols in the picture
+
+> Overview of symbols
+
+![symbols](./img/TypeSystem.png)
+
+All symbols have a common predecessor, `Symbol`. 
+For testing purposes, the symbol currently contains only one method used to get the `CILOSTAZOLContext`. The reason is given in the tests section.
+
+`TypeSymbol` contains several additional data related to types. 
+It contains the info on how it is represented on the stack and inside the constructed type (meaning `class` or `struct`).
+It is also required a predecessor of type, which can be used as an input into `TypeMap` mentioned later.
+It also provides API for determining the assignability of CIL types.
+
+`ReferenceTypeSymbol` represents managed pointers in CIL which consist of information about the actual location of the pointed entity (local variable, argument, object field, or array element), and the actual type of pointed object.
+
+`ArrayTypeSymbol` describes CIL arrays.
+
+`NamedTypeSymbol` describes named types in CIL including generic ones. It consists of other symbols for fields or methods.
+
+On the other side, we have `MethodSymbol` which can be executed. 
+The ancestors of that symbol are described in the following section.
+It consists of other symbols for parameters or exception handling, which is basically a table of exception handlers containing info about the protected sections and etc...
+
+The last group of symbols represents high-level cil containers.
+`ModuleSymbol` is responsible for creating `TypeSymbols` defined locally.
+`AssemblySymbol` is responsible for creating `TypeSymbols` defined in their modules.
+
+
+#### Generics
+
+The main challenge was dealing with generics.
+We had to think of a mechanism for instantiating generic types.
+We got inspiration from Roslyn and use the following observation.
+Generic entities can be found in three states: opened, substituted, and constructed.
+An entity is opened when it is generic and no instantiation has been done yet.
+An entity can become substituted when it contains another entity (excluding type arguments) which is a type parameter not belonging to the containing entity.
+An entity becomes constructed when it is instantiated by types.
+
+> You can see the examples below.
+>
+> ```csharp
+> class A<Ta> 
+> {
+>   void Foo(Ta p1) {}   
+> }
+> class B<Tb> : A<Tb> {} // A<Tb>.Foo(Tb p1) is a substituted method.
+> ```
+
+This observation led to the creation of three types of method symbols. MethodSymbol represents an opened generic entity. The `SubstitutedMethodSymbol` represents a substituted entity and the `ConstructedMethod` symbol represents the last option.
+
+We didn't make a `SubstituteNamedTypeSymbol` because we don't support nested classes.
+
+Instantiation of generic entities is done by `TypeMap`.
+When we instantiate a type or method, we create a type map that maps type parameters to provided type arguments.
+In the case of the substituted method, we provide this type map of constructed defining type to the `SubstitutedMethodSymbol`.
+When we want to find out entities of constructed types of methods, we use this map to map the entities contained in the map.
+
+#### Static object model
+
+> TODO
+
+#### Strings
+
+> TODO
+
+#### Arrays
+
+> TODO
+
 
 ### Interpreter
 
 > TODO:
+> > - Context
+> - SymbolResolver
 > - Execution
-> - SOM
 > - Nodeization
 > - Exceptions
 > - OSR
@@ -131,6 +203,7 @@ More info about `SymbolResolver` can be found in the type system section.
 > - References
 > - Static analysis
 > - Extern umnanaged code
+> - STDLIB
 
 ### Launcher
 
@@ -138,7 +211,7 @@ More info about `SymbolResolver` can be found in the type system section.
 > description
 > cmd line args
 
-## Benchmarks
+## Tests
 
 ### Own tests
 
