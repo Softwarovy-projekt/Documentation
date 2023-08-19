@@ -220,18 +220,61 @@ A multidimensional array is stored as a row-major which is equivalent to CIL.
 
 ### Interpreter
 
-> TODO:
-> > - Context
-> - SymbolResolver
-> - Execution
-> - Nodeization
-> - Exceptions
-> - OSR
-> - Loading strings
-> - References
-> - Static analysis
-> - Extern umnanaged code
-> - STDLIB
+In this section we describe execution of CIL code.
+We got inspiration from Espresso and used one node representing one CIL method.
+However, we are using extra nodes for instructions like `CALL` or `VIRTCALL` in the process called nodeization in BACIL.
+We removed custom handling of evaluation stack used in BACIL and replaced it by using Truffle `VirtualFrame`.
+We added exception handling and OSR.
+We also make static analysis of CIL code before first run of each method to determine correct versions of CIL instructions.
+
+#### CIL interpretation
+
+- initializing frame
+- switch
+- interesting opcodes (unsigned arithmetics, references, multiarrays, string loading)
+
+#### Type resolution
+
+We need to resolve referenced metadata during CIL interpretation frequently.
+Although, there are many kinds of references that are resolved differently.
+We choose a way to keep the related things together and introduced `SymbolResolver` which is used everywhere, where we need to resolve `AssemblySymbol`, `TypeSymbol`, `MethodSymbol`, and `FieldSymbol`.
+Internally, it uses `CILOSTAZOLContext` to determine the referenced symbol.
+The context consists only necessary API for determining a symbol.
+For example, when we want to resolve an instantiated generic type using context we need to know its `TypeSymbol` definition and its arguments.
+Although, CIL code uses low-level metadata pointers to refer to these symbols.
+So we move navigation through these pointers to the `SymbolResolver` and leave just the necessary API for resolution in the context.  
+
+As we already mentioned, the context has caches of `TypeSymbol`s and is responsible for initiating a creation of a requested `TypeSymbol`, if it is not presented in the cache.
+This is done by custom methods of `AssemblySymbol` and `ModuleSymbol` which uses symbol factories.
+The API is used only by context preventing the creation of more than one `TypeSymbol` of the same CIL type.
+
+When we want to resolve a field or method symbol, the situation is harder.
+For example, the reference can represent an index in the table of method definitions.
+As we said previously, we cache methods belonging to a type in the instance of appropriate `NamedTypeSymbol`. 
+Unfortunately, the metadata describing a method doesn't contain a pointer to define the type.
+This info is stored in the type definition.
+So, at the start of parsing a new CIL module, we make indices of which method or field belongs to what type and then use it to navigate `NamedTypeSymbol` defining these symbols.
+
+#### Exception handling
+
+- Exceptions
+
+#### Static analysis
+
+- Static analysis
+
+#### Stub methods and STDLIB
+
+- Extern umnanaged code
+- STDLIB
+
+#### Nodeization
+
+- CALLNode, PrintNode atd...
+
+#### OSR
+
+- OSR
 
 ### Launcher
 
