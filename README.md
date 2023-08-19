@@ -261,7 +261,15 @@ So, at the start of parsing a new CIL module, we make indices of which method or
 
 #### Exception handling
 
-- Exceptions
+There are two moments when an exception occurs.
+Special instruction `THROW` or `RETHOW` is executed or an instruction itself throws an exception.
+We handle both situations in CILOSTAZOL.
+When `THROW` is called, we resolve the referenced type of the exception which should be thrown, wrap it into a customized Java exception and throw it in the interpreter.
+For the second situation, we sanitized places, where the exception can be raised based on the standard and throw appropriate exceptions as well.
+Note that we don't collect info about stack trace and other data because it would complicate the code since it uses unsupported features.
+
+Handling is done by wrapping the main switch node by a `try-catch` block and catching our customized exception containing the CIL exception.
+If the exception occurred, we filter the table of exception handlers defined in `MethodSymbol` and jump to the appropriate handler, if there is any.
 
 #### Static analysis
 
