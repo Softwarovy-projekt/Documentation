@@ -113,17 +113,17 @@ More info about `SymbolResolver` can be found in the type system section.
 
 > TODO:
 > - Symbols
-> - SymbolResolver
-> - Context
+
 > - Strings
 > - Arrays
 > - STDLIB
+> - > - SOM
 
 ### Interpreter
 
 > TODO:
 > - Execution
-> - SOM
+
 > - Nodeization
 > - Exceptions
 > - OSR
@@ -131,6 +131,8 @@ More info about `SymbolResolver` can be found in the type system section.
 > - References
 > - Static analysis
 > - Extern umnanaged code
+> - SymbolResolver
+> - Context
 
 ### Launcher
 
