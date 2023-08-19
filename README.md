@@ -68,14 +68,46 @@ In the end, because some methods from the standard library use unsafe code or ot
 
 ![pipeline](./img/Pipeline.png)
 
-
 ### Parser
 
-> TODO:
-> - Seperated module
-> - Bugs in BACIL
-> - Lazy evaluation of symbols
-> - Factories
+The parser can be divided into two parts. 
+We call the first part low-level parser which handles navigation between CIL meta tables and streams.
+The second part is contained in dedicated symbol factories focusing on a small part of the metadata.
+
+#### Low-level parser
+
+We took the low-level parser from the BACIL project and transform it into a separated module since it is independent on the remaining parts of the interpreter.
+Because metadata contains lots of tables that would behave in a similar way, the code generator was used to generate Java classes according to simpler tables description given in simple format.
+When the generator is run, a dedicated class for each table is created.
+The table consists of rows describing a part of the metadata.
+The rows are implemented as smart pointers using the iterator pattern for better usage.
+The columns can be constants or other pointers to different tables or streams.
+Streams contain different kinds of signatures describing other metadata or string constants. 
+These signatures have to be implemented manually because of harder parsing.
+The signatures are part of the low-level parser as well.
+
+We noticed some bugs in the table descriptions, which we fixed according to the ECMA specification.
+There was also an issue regarding the low-level interpretation of indices, which was fixed as well. 
+In the end, we reimplemented the signatures since the former implementation just parses a necessary part of the info required in BACIL.
+
+#### Symbol factories
+
+The symbol factories are responsible for interpreting data obtained from the low-level parser and transforming them into symbols described later.
+We don't see a parallel part in the BACIL, because it was strongly connected with BACIL's type system.
+We think that this architecture was wrong because of future maintainability and code extensibility.
+So we separated symbol representation and creation by providing factories for each type of symbol.
+
+Because we don't need to parse every method and class in the assembly to evaluate simple code, we use lazy evaluation of metadata, which would take a long time.
+For example, we parse only referenced methods.
+
+For performance reasons, we cache already created symbols in the context and reuse them when it is referenced again in the CIL.
+We have several types of caches for different types of symbols.
+The context contains separated caches for generic types, instantiated generic types, arrays, and generic method instantiations.
+`NamedTypeSymbol`s have caches for defined methods and fields.
+Because of the compressed design of cil metadata, we also use several indices in `ModuleSymbol` to help resolve symbols from caches.
+To be sure that we always use already cached symbols, we use `SymbolResolver` which is responsible for handling all types of metadata references and returning appropriate symbols.
+Since we use the `SymbolResolver` only, there is just one option, how the `NamedTypeSymbol`, `AssemblySymbol`, or `MethodSymbol` is created. The context is the only one, which calls further methods for creating these symbols when it is not found in the caches. Except for non-instantiated methods, which are created lazily and cached in the `NamedTypeSymbol`.  
+More info about `SymbolResolver` can be found in the type system section.
 
 ### Type system
 
