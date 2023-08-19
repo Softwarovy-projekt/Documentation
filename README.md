@@ -179,16 +179,44 @@ When we want to find out entities of constructed types of methods, we use this m
 
 #### Static object model
 
-> TODO
+We used Truffle API for creating static objects and created our own `StaticObject` with a field of `TypeSymbol` type representing a reference to metadata symbol.
+It allows us to implement virtual methods and other things described later.
+We also created `StaticField` representing fields of a CIL object.
 
-#### Strings
+Data representation of classes and structs are the same in CILOSTAZOL. 
+We just treat them differently to save reference and value semantics.
+There are two Truffle object shapes representing the instance and static part of a CIL object. 
+These shapes are lazily created based on metadata.
+Each instance of `NamedTypeSymbol` has one field representing the static part of it of type `StaticObject` consisting of static fields of the CIL type.
+There is the important thing about caching the symbols since we have to have exactly up to one instance of `TypeSymbol` representing CIL type.
 
-> TODO
+When we want to create an instance of a named CIL type, we use the instance shape of that type.
+
+The creation of arrays is simpler because there is a finite amount of array types(arrays with primitive element type and with reference element type).
+So we have prepared their shapes in the context and just choose based on the element type.
+
+Managed pointers are quite tricky because according to ECMA standard, it pushes an address of the pointed object to the stack.
+This behavior is unachievable for us since we implement the interpreter in Java.
+Instead of it, we have our own static objects containing the necessary components to access the pointed objects.
+For example, for managed pointer pointing to an element of an array, we create a static object instance containing the index of the array and the array as fields.
+
+Primitives are represented by Java primitives.
+Although, we have to be careful during interpreting unsigned versions of CIL primitives since Java doesn't have an equivalent for them.
+
+#### String
+
+`string` is represented differently in comparison with .NET.
+.NET represents strings as a pair of the length of a byte array and the byte array representing the string.
+Although, the array is embedded into the pair which means that the string object length depends on the value inside them for performance reasons.
+This implementation is hidden in CIL metadata which describes `string` as an object with two fields of type `int` and `char`.
+We tried to save the information about the fields and represent `string` as a static object with two fields of `int` and an array of `char` types.   
 
 #### Arrays
 
-> TODO
-
+There are single and multidimensional arrays in CIL.
+We got inspiration from Espresso and represent them as a static object with one field containing a java array of a particular type.
+This representation allows us to determine arrays as objects in the rest of the code.
+A multidimensional array is stored as a row-major which is equivalent to CIL.
 
 ### Interpreter
 
