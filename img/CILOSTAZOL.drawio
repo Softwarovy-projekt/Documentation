@@ -1,0 +1,70 @@
+<mxfile host="app.diagrams.net" modified="2023-08-19T12:34:41.247Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.203" etag="ODS_4TmFM0pC60h6Gvq2" version="21.3.8" type="device">
+  <diagram name="Page-1" id="Xx2nQq5FLxCzXAMQvaSb">
+    <mxGraphModel dx="1434" dy="788" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-9" value="" style="swimlane;startSize=0;" vertex="1" parent="1">
+          <mxGeometry x="200" y="80" width="190" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-10" value="modul language" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="5" y="-5" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-3" value="Symbols" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="10" y="40" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-11" value="Symbol resolver" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="100" y="40" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-4" value="Nodes" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="10" y="90" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-7" value="Object model" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="100" y="90" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-5" value="Static analysis" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="10" y="140" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-8" value="Context" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="100" y="140" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-15" value="Symbol factories" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="10" y="190" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-16" value="Metadata tests" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-9">
+          <mxGeometry x="100" y="190" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-13" value="" style="swimlane;startSize=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="140" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-14" value="modul cil-parser" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-13">
+          <mxGeometry y="5" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-12" value="low-level .dll parser" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-13">
+          <mxGeometry x="10" y="35" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-18" value="" style="swimlane;startSize=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="80" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-19" value="modul launcher" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-18">
+          <mxGeometry width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-6" value="Launcher" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-18">
+          <mxGeometry x="10" y="30" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-20" value="" style="swimlane;startSize=0;" vertex="1" parent="1">
+          <mxGeometry x="510" y="80" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-21" value="modul tests" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-20">
+          <mxGeometry x="10" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-17" value="end-to-end tests" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="ApEXCrUeWTp-K8aDuxJo-20">
+          <mxGeometry x="10" y="30" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ApEXCrUeWTp-K8aDuxJo-22" value="CILOSTAZOL" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="580" height="280" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
