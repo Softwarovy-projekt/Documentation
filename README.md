@@ -244,7 +244,17 @@ In the first situation, we use symbols contained in the defining method, which a
 In the second situation, we use results from the static analysis, which determines the type of arguments, which we will work with.
 And the last source is to use the stored `TypeSymbol` contained in `StaticObject` if it is a static object.
 
-> TODO: interesting opcodes (unsigned arithmetics, references, multiarrays, string loading, structs)
+An interesting part of instruction interpretation is unsigned arithmetics.
+Unfortunately, java doesn't have built-in unsigned primitive types. 
+So we had to implement it with the help of other Java standard library functions.
+
+We also cache `string` literals in our `GuestAllocator` because they are immutable.
+
+`struct`s are represented in the same way as classes which is inefficient in comparison with .NET where the `struct`s are placed on the stack(if they can be placed there).
+However, we didn't find a better way how to do it in Truffle.
+We change the behavior of passing arguments, assignments and etc. based on the `TypeSymbol` of `StaticObject`.
+
+> TODO: mention how work multiarrays
 
 #### Type resolution
 
