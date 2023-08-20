@@ -84,12 +84,25 @@ However, we can look at metadata representation in the Roslyn compiler and adjus
 
 ### BACIL 
 
-> TODO: Unsufficient type system, parser, bugs etc...
- - typovy system
- - problemy s parsrem -> zminit ze jsme nestihli polyglot api kvuli tomu
- - obcas nejake bugy
- - nektere instrukce nejsou implementovane
- - mirror specifikaci, kde jsme zminovali co v BACILu neni a my to udelame, nastinit, ze jsme to vsechno stihli
+CILOSTAZOL takes BACIL and tries to extend it.
+However, there are many difficulties, which make it hard.
+The biggest problem was the parser, which we thought we would use in our implementation.
+We had to add a large part of parsing metadata to be able to work with generics, exception handling, and interfaces.
+As we mention later in the text, the parser can be divided into two parts. 
+The first one we call a low-level parser, which was taken from BACIL.
+The rest of the parser had to be reimplemented.
+
+BACIL type system is restricted to a small part of CIL and can't be extended to support generics and other advanced constructs.
+So a new type system has to be created.
+
+BACIL's nonstandard way of treating stack also should be changed to use standard `VirtualFrame` which offers us broader API for working with it.
+
+We also have to change the execution node of BACIL since it doesn't handle exceptions and added OSR.
+
+The last change to be added is the static object model, which is different from the BACIL way.
+
+In conclusion, we think that BACIL is so interconnected that it is almost impossible to extend it to support our defined features.
+Because of it, we reimplemented the whole interpreter and used common parts of BACIL  
 
 ### Espresso
 
