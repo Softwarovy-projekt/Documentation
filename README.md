@@ -309,7 +309,14 @@ If the exception occurred, we filter the table of exception handlers defined in 
 
 #### Nodeization
 
-- CALLNode, PrintNode atd...
+Nodeization is a process where we wrap the funcationality of an instruction to executable node, store it and patch the CIL code by our custom opcode for invoking the stored node.
+This process eanbles Truffle to cache static data required by the instruction for next evaluation.
+
+> Overview of nodeization
+>
+> ![nodeization](./img/Nodeization.png)
+
+We created three nodeized instructions: `CALLNode`, `NEWOBJNode`, and `JMPNode`.
 
 #### OSR
 
