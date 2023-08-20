@@ -320,7 +320,9 @@ We created three nodeized instructions: `CALLNode`, `NEWOBJNode`, and `JMPNode`.
 
 #### OSR
 
-- OSR
+OSR is done by implementing the `BytecodeOSRNode` interface. 
+It consists of checking every jump to the instruction on the lower address and trying to do OSR by invoking Truffle API.
+When Truffle decides to do OSR, it invokes implemented `executeOSR(VirtualFrame osrFrame, int target, Object interpreterState)` method passing the actual frame and instruction pointer. It also enables passing user-defined additional data which represents the interpreter state. In our case, we have to share a current position on the stack.
 
 ### Launcher
 
