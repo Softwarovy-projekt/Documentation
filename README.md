@@ -338,6 +338,10 @@ We created three nodeized instructions: `CALLNode`, `NEWOBJNode`, and `JMPNode`.
 
 > TODO: statistics
 
+## Conslusion
+
+- achieved goals
+
 ## Apendix
 
 > TODO: How to run it
