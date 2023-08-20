@@ -304,8 +304,17 @@ If the exception occurred, we filter the table of exception handlers defined in 
 
 #### Stub methods and STDLIB
 
-- Extern umnanaged code
-- STDLIB
+The standard library defines some methods as internal, which means that the implementation is provided by .NET runtime.
+Since we interpret just the standard library, we have to provide an implementation for them in our interpreter.
+Although we created a mechanism for providing a custom implementation of these methods, we didn't implement all of them.
+We also use this mechanism to provide an implementation of methods, which are used in our benchmarks and use unsupported CIL features.
+
+The main class responsible for providing these implementations is `RuntimeSpecificMethodImplementations`, where we can find a map of implemented methods.
+Its key is the signature of the method. The value is `CILRuntimeSpecificMethodNode` inheriting from `CILMethodNode` and enabling to add the implementation to the method definition. 
+
+> Overview of stub methods
+>
+> ![stub_methods](./img/STUB.png)
 
 #### Nodeization
 
