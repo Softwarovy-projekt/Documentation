@@ -183,6 +183,8 @@ It also provides API for determining the assignability of CIL types.
 
 `ArrayTypeSymbol` describes CIL arrays.
 
+> TODO: multiarrays
+
 `NamedTypeSymbol` describes named types in CIL including generic ones. It consists of other symbols for fields or methods.
 
 On the other side, we have `MethodSymbol` which can be executed. 
@@ -346,7 +348,7 @@ If the exception occurred, we filter the table of exception handlers defined in 
 
 #### Static analysis
 
-- Static analysis
+> TODO: Static analysis
 
 #### Stub methods and STDLIB
 
