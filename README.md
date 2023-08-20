@@ -63,10 +63,24 @@ The Truffle language implementation framework also refered to just as Truffle is
 
 ## Problem analysis
 
+Although Expresso showed that interpreting bytecode can be done by using the Truffle framework, we encountered several problems regarding the architecture of CIL and BACIL as a start project.
+In this section, we will mention the important ones.
+
 ### CIL vs. Bytecode
 
- - rozdil v instrukcich
- - proc je potreba staticka analyza
+There are arithmetic CIL instructions working with different types of operands.
+Although the high-level view on the instructions can look the same (e.g. adding two numbers),
+there is a difference between adding two floats and adding two integers at the low-level layer.
+So when we interpret values on the stack, we have to know their types to choose the correct version of the instruction.
+When we look at the equivalent instructions in bytecode, the instructions themselves differ between integer addition and float addition.
+However, we don't want to investigate the type of operands in the runtime since we interpreting statically-typed language.
+So we need to create an analysis of the CIL before we execute it in order to choose the correct version of instruction ahead of interpreting.
+ 
+We also have a different type system.
+We need to deal with `struct` which has value semantics in comparison with `class`.
+The main challenge is supporting generics that are not presented in bytecode.
+We can't get inspiration from Espresso or BACIL since bytecode doesn't contain it and BACIL doesn't support generics.
+However, we can look at metadata representation in the Roslyn compiler and adjust it to work with partial evaluation.
 
 ### BACIL 
 
