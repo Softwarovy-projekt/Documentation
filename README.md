@@ -20,7 +20,9 @@ Main advantages of this virtual machine as demonstrated at the discontinued cour
 
 GraalVM compiles Java applications ahead of time into standalone binaries which are naturally smaller, require less resources and according to the official GrallVM documentation [[4]](https://www.graalvm.org/latest/docs/introduction/) are up to a 100 times faster to start. We witnessed this behaviour during the course mentioned above.
 
-For the purpose of this project we used GraalVM a platform. Utilising the Truffle language implementation framework to provide hints to the GraalVM compiler that served as a JIT [[5]](https://en.wikipedia.org/wiki/Just-in-time_compilation) and finally the GraalVM virutal machine and JDK implementation to execute the program. The nomenclature is a little confusing as the term *GraalVM* is used interchangeeably to refer to the virtual machine itself as well as the platform consisting or even the Truffle framework. We will try to shed a bit of light on this problem with the following relationship diagram.
+GraalVM also provides support for many useful tools such as *Ideal Graph Visualizer* [[5]](https://www.graalvm.org/latest/tools/igv/) which can be used to visualise the compilation process of a Java application in a graph form. This tool was also showcased during the course mentioned above.
+
+For the purpose of this project we used GraalVM a platform. Utilising the Truffle language implementation framework to provide hints to the GraalVM compiler that served as a JIT [[6]](https://en.wikipedia.org/wiki/Just-in-time_compilation) and finally the GraalVM virutal machine and JDK implementation to execute the program. The nomenclature is a little confusing as the term *GraalVM* is used interchangeeably to refer to the virtual machine itself as well as the platform consisting or even the Truffle framework. We will try to shed a bit of light on this problem with the following relationship diagram.
 
 ```
 GraalVM
@@ -29,11 +31,11 @@ GraalVM
     └── Truffle framework
         └── Truffle languages
 ```
-
+When the work on this project started there were two GraalVM distributions. *GraalVM Comunity Edition* which was open-source and *GraalVM Enterprise Edition*. At the time of writing there is only one edition of GraalVM which was announced on the 13th of June 2023 [[7]](https://blogs.oracle.com/java/post/graalvm-free-license). With that being said this project was developed using the *GraalVM Enterprise Edition*.
 
 ### Truffle framework
 
-> TODO: Overview
+The Truffle language implementation framework also refered to just as Truffle is a framework utilising the GraalVM SDK to help implement so called *guest languages* for the GraalVM.Such guest languages include Python, Ruby, 
 
 ### .NET
 
@@ -41,25 +43,40 @@ GraalVM
 
 ### BACIL
 
-> TODO: Overview
+ - popsat co to je
+   - jak to vzniklo
+   - jak to funguje
+   - jake jsou tam chyby na ktere jsme narazili pri analyze a pri implementaci
 
 ### Espresso
 
-> TODO: Overview
+- co to je
+  - jak jsme z toho brali inspiraci
+  - jak z toho bral inspiraci bacil?
+  - proc nam to ne ve vsem vyhovovalo -> nastinit problem analysis
+
+
 
 ## Problem analysis
 
 ### CIL vs. Bytecode
 
-> TODO: diferencies in opcodes etc.
+ - rozdil v instrukcich
+ - proc je potreba staticka analyza
 
 ### BACIL 
 
 > TODO: Unsufficient type system, parser, bugs etc...
+ - typovy system
+ - problemy s parsrem -> zminit ze jsme nestihli polyglot api kvuli tomu
+ - obcas nejake bugy
+ - nektere instrukce nejsou implementovane
+ - mirror specifikaci, kde jsme zminovali co v BACILu neni a my to udelame, nastinit, ze jsme to vsechno stihli
 
 ### Espresso
 
 > TODO: Diferencies between Java and C#
+  - proc jsme brali nekde inspiraci spis z roslynu (type system) 
 
 ## Solution
 
@@ -160,19 +177,28 @@ More info about `SymbolResolver` can be found in the type system section.
 ### Launcher
 
 > TODO:
-> description
-> cmd line args
+ - description
+ - cmd line args
 
 ## Benchmarks
 
 ### Own tests
 
-> TODO: our framework, table with tested features ?
+ - popsat jak jsme to testovali - framework
+   - test from file, dll, code
+ - proc tak dlouho trvaj
+ - tabulka s otestovanyma featurama ze specky
+ - tabulka s otestovanyma opcodama
 
 ### Benchmark game
-
-> TODO: statistics
+ - popsat problemy
+   - musi se osekat
+ - porovnat s BACILem
+   - rict proc je bacil asi rychlejsi
 
 ## Apendix
+  - co je potreba ke spusteni
+  - jak to spustit
+  - finaliyace co vsechno jsme stihli v ramci projektu
 
 > TODO: How to run it
