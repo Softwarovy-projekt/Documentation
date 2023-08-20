@@ -1,0 +1,105 @@
+<mxfile host="app.diagrams.net" modified="2023-08-19T22:44:41.004Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.203" etag="79wL_7bf1e6dvk8uvFfi" version="21.3.8" type="device">
+  <diagram name="Page-1" id="Qsb8ecC2fXm5DqP-L0uR">
+    <mxGraphModel dx="1434" dy="788" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-24" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-1" target="NWMT-flrUUoNdrI8qfSR-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-25" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-1" target="NWMT-flrUUoNdrI8qfSR-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-26" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-1" target="NWMT-flrUUoNdrI8qfSR-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-1" value="SymbolResolver" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="60" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-11" value="NamedTypeSymbol" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="535" y="200" width="150" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-12" value="MethodSymbolCache" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-11">
+          <mxGeometry x="10" y="30" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-13" value="FieldSymbolCache" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-11">
+          <mxGeometry x="10" y="80" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-14" value="ModuleSymbol" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="200" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-16" value="FieldToDefinedTypeIndicies" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-14">
+          <mxGeometry x="10" y="30" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-15" value="MethodToDefinedTypeIndicies" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-14">
+          <mxGeometry x="10" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-18" target="NWMT-flrUUoNdrI8qfSR-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-18" value="Create type" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="128" y="480" width="84" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-19" target="NWMT-flrUUoNdrI8qfSR-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-19" value="Create method/field" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="548.75" y="390" width="122.5" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-7" target="NWMT-flrUUoNdrI8qfSR-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-7" value="CILOSTAZOLContext" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="200" width="240" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-8" value="ConstructedNamedTypeSymbolCache" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-7">
+          <mxGeometry x="10" y="30" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-9" value="ConstructedMethodSymbolCache" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-7">
+          <mxGeometry x="10" y="80" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-5" value="NamedTypeSymbolCache" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-7">
+          <mxGeometry x="10" y="130" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-10" value="ArrayTypeSymbolCache" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="NWMT-flrUUoNdrI8qfSR-7">
+          <mxGeometry x="10" y="180" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=76;exitDy=60;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-21" target="NWMT-flrUUoNdrI8qfSR-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-21" value="Resolve ..." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="76" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-23" value="" style="curved=1;endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-1" target="NWMT-flrUUoNdrI8qfSR-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="110" as="sourcePoint" />
+            <mxPoint x="640" y="100" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="500" y="40" />
+              <mxPoint x="440" y="10" />
+              <mxPoint x="400" y="10" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-27" value="Symbol factories" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="480" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-11" target="NWMT-flrUUoNdrI8qfSR-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-34" target="NWMT-flrUUoNdrI8qfSR-35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-34" value="AssemblySymbol" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="481" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="NWMT-flrUUoNdrI8qfSR-35" target="NWMT-flrUUoNdrI8qfSR-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NWMT-flrUUoNdrI8qfSR-35" value="ModuleSymbol" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="480" width="120" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

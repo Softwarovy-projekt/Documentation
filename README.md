@@ -90,8 +90,8 @@ The project solution contains four modules:
 - **tests** - It contains a custom framework for testing end-to-end tests taking *.cs* sources, compiling them, executing them in the interpreter, and asserting the results. 
 
 > Overview of CILOSTAZOL project architecture
-
-![architecture_overview](./img/CILOSTAZOL.png)
+>
+> ![architecture_overview](./img/CILOSTAZOL.png)
 
 Although the detailed description of interpreting CIL will be given later, we also provide a brief overview of the pipeline to make understanding each part of the process easier.
 We compute everything lazily in CILOSTAZOL, however, we use the arrows in the picture in the opposite direction to indicate data flow.
@@ -107,8 +107,8 @@ During the evaluation of the code, there is a need to resolve symbols referred i
 In the end, because some methods from the standard library use unsafe code or other constructs which are not supported by the CILOSTAZOL, we provide a custom implementation of commonly used methods used in our benchmarks to be able to use them.
 
 > Overview of .dll pipeline
-
-![pipeline](./img/Pipeline.png)
+>
+> ![pipeline](./img/Pipeline.png)
 
 ### Parser
 
@@ -153,26 +153,218 @@ More info about `SymbolResolver` can be found in the type system section.
 
 ### Type system
 
-> TODO:
-> - Symbols
-> - SymbolResolver
-> - Context
-> - Strings
-> - Arrays
-> - STDLIB
+In this section, we describe the system of symbols heavily used in CILOSTAZOL to represent CIL components. We also talk about how cil application data are represented during the runtime. 
+
+#### Symbols
+
+Symbols can be divided into three categories:
+
+- **Method-related symbols** - Red-colored symbols in the picture
+- **Type-related symbols** - Yellow-colored symbols in the picture
+- **.dll related symbols** - Blue-colored symbols in the picture
+
+> Overview of symbols
+>
+> ![symbols](./img/TypeSystem.png)
+
+All symbols have a common predecessor, `Symbol`. 
+For testing purposes, the symbol currently contains only one method used to get the `CILOSTAZOLContext`. The reason is given in the tests section.
+
+`TypeSymbol` contains several additional data related to types. 
+It contains the info on how it is represented on the stack and inside the constructed type (meaning `class` or `struct`).
+It is also required a predecessor of type, which can be used as an input into `TypeMap` mentioned later.
+It also provides API for determining the assignability of CIL types.
+
+`ReferenceTypeSymbol` represents managed pointers in CIL which consist of information about the actual location of the pointed entity (local variable, argument, object field, or array element), and the actual type of pointed object.
+
+`ArrayTypeSymbol` describes CIL arrays.
+
+`NamedTypeSymbol` describes named types in CIL including generic ones. It consists of other symbols for fields or methods.
+
+On the other side, we have `MethodSymbol` which can be executed. 
+The ancestors of that symbol are described in the following section.
+It consists of other symbols for parameters or exception handling, which is basically a table of exception handlers containing info about the protected sections and etc...
+
+The last group of symbols represents high-level cil containers.
+`ModuleSymbol` is responsible for creating `TypeSymbols` defined locally.
+`AssemblySymbol` is responsible for creating `TypeSymbols` defined in their modules.
+
+
+#### Generics
+
+The main challenge was dealing with generics.
+We had to think of a mechanism for instantiating generic types.
+We got inspiration from Roslyn and use the following observation.
+Generic entities can be found in three states: opened, substituted, and constructed.
+An entity is opened when it is generic and no instantiation has been done yet.
+An entity can become substituted when it contains another entity (excluding type arguments) which is a type parameter not belonging to the containing entity.
+An entity becomes constructed when it is instantiated by types.
+
+> You can see the examples below.
+>
+> ```csharp
+> class A<Ta> 
+> {
+>   void Foo(Ta p1) {}   
+> }
+> class B<Tb> : A<Tb> {} // A<Tb>.Foo(Tb p1) is a substituted method.
+> ```
+
+This observation led to the creation of three types of method symbols. MethodSymbol represents an opened generic entity. The `SubstitutedMethodSymbol` represents a substituted entity and the `ConstructedMethod` symbol represents the last option.
+
+We didn't make a `SubstituteNamedTypeSymbol` because we don't support nested classes.
+
+Instantiation of generic entities is done by `TypeMap`.
+When we instantiate a type or method, we create a type map that maps type parameters to provided type arguments.
+In the case of the substituted method, we provide this type map of constructed defining type to the `SubstitutedMethodSymbol`.
+When we want to find out entities of constructed types of methods, we use this map to map the entities contained in the map.
+
+#### Static object model
+
+Primitives are represented by Java primitives.
+Although, we have to be careful during interpreting unsigned versions of CIL primitives since Java doesn't have an equivalent for them.
+
+We used Truffle API for creating static objects and created our own `StaticObject` with a field of `TypeSymbol` type representing a reference to metadata symbol.
+It allows us to implement virtual methods and other things described later.
+We also created `StaticField` representing fields of a CIL object.
+
+> Overview of data representation in CILOSTAZOL
+>
+> ![SOM](./img/SOM.png)
+
+Data representation of classes and structs are the same in CILOSTAZOL. 
+We just treat them differently to save reference and value semantics.
+There are two Truffle object shapes representing the instance and static part of a CIL object. 
+These shapes are lazily created based on metadata.
+Each instance of `NamedTypeSymbol` has one field representing the static part of it of type `StaticObject` consisting of static fields of the CIL type.
+There is the important thing about caching the symbols since we have to have exactly up to one instance of `TypeSymbol` representing CIL type.
+
+When we want to create an instance of a named CIL type, we use the instance shape of that type.
+
+The creation of arrays is simpler because there is a finite amount of array types(arrays with primitive element type and with reference element type).
+So we have prepared their shapes in the context and just choose based on the element type.
+
+Managed pointers are quite tricky because according to ECMA standard, it pushes an address of the pointed object to the stack.
+This behavior is unachievable for us since we implement the interpreter in Java.
+Instead of it, we have our own static objects containing the necessary components to access the pointed objects.
+For example, for managed pointer pointing to an element of an array, we create a static object instance containing the index of the array and the array as fields.
+
+#### String
+
+`string` is represented differently in comparison with .NET.
+.NET represents strings as a pair of the length of a byte array and the byte array representing the string.
+Although, the array is embedded into the pair which means that the string object length depends on the value inside them for performance reasons.
+This implementation is hidden in CIL metadata which describes `string` as an object with two fields of type `int` and `char`.
+We tried to save the information about the fields and represent `string` as a static object with two fields of `int` and an array of `char` types.   
+
+#### Arrays
+
+There are single and multidimensional arrays in CIL.
+We got inspiration from Espresso and represent them as a static object with one field containing a java array of a particular type.
+This representation allows us to determine arrays as objects in the rest of the code.
+A multidimensional array is stored as a row-major which is equivalent to CIL.
 
 ### Interpreter
 
-> TODO:
-> - Execution
-> - SOM
-> - Nodeization
-> - Exceptions
-> - OSR
-> - Loading strings
-> - References
-> - Static analysis
-> - Extern umnanaged code
+In this section we describe execution of CIL code.
+We got inspiration from Espresso and used one node representing one CIL method.
+However, we are using extra nodes for instructions like `CALL` or `VIRTCALL` in the process called nodeization in BACIL.
+We removed custom handling of evaluation stack used in BACIL and replaced it by using Truffle `VirtualFrame`.
+We added exception handling and OSR.
+We also make static analysis of CIL code before first run of each method to determine correct versions of CIL instructions.
+
+#### CIL interpretation
+
+As we mentioned before, we use typical `BytecodeNode` for interpreting CIL.
+Besides the main loop in the node, we use the `CILOSTAZOLFrame` class responsible for manipulation with the frame.
+
+> Overview of getting info about current types on the stack.
+>
+> ![types](./img/Frame.png)
+
+We using the static API of pushing and popping values in `VirtualFrame`.
+Most of the time, instruction type hints to us what kind of type will be pushed to the frame or popped from it.
+Although, during the initializing frame, executing arithmetic instructions, or calling virtual methods, we don't know the types of values which we work with.
+In order to find it, there are three sources where we can get the info.
+In the first situation, we use symbols contained in the defining method, which are able to give us which type is on the frame.
+In the second situation, we use results from the static analysis, which determines the type of arguments, which we will work with.
+And the last source is to use the stored `TypeSymbol` contained in `StaticObject` if it is a static object.
+
+An interesting part of instruction interpretation is unsigned arithmetics.
+Unfortunately, java doesn't have built-in unsigned primitive types. 
+So we had to implement it with the help of other Java standard library functions.
+
+We also cache `string` literals in our `GuestAllocator` because they are immutable.
+
+`struct`s are represented in the same way as classes which is inefficient in comparison with .NET where the `struct`s are placed on the stack(if they can be placed there).
+However, we didn't find a better way how to do it in Truffle.
+We change the behavior of passing arguments, assignments and etc. based on the `TypeSymbol` of `StaticObject`.
+
+> TODO: mention how work multiarrays
+
+#### Type resolution
+
+> Overview of caches
+> 
+> ![caches](./img/Cache.png)
+
+We need to resolve referenced metadata during CIL interpretation frequently.
+Although, there are many kinds of references that are resolved differently.
+We choose a way to keep the related things together and introduced `SymbolResolver` which is used everywhere, where we need to resolve `AssemblySymbol`, `TypeSymbol`, `MethodSymbol`, and `FieldSymbol`.
+Internally, it uses `CILOSTAZOLContext` to determine the referenced symbol.
+The context consists only necessary API for determining a symbol.
+For example, when we want to resolve an instantiated generic type using context we need to know its `TypeSymbol` definition and its arguments.
+Although, CIL code uses low-level metadata pointers to refer to these symbols.
+So we move navigation through these pointers to the `SymbolResolver` and leave just the necessary API for resolution in the context.  
+
+As we already mentioned, the context has caches of `TypeSymbol`s and is responsible for initiating a creation of a requested `TypeSymbol`, if it is not presented in the cache.
+This is done by custom methods of `AssemblySymbol` and `ModuleSymbol` which uses symbol factories.
+The API is used only by context preventing the creation of more than one `TypeSymbol` of the same CIL type.
+
+When we want to resolve a field or method symbol, the situation is harder.
+For example, the reference can represent an index in the table of method definitions.
+As we said previously, we cache methods belonging to a type in the instance of appropriate `NamedTypeSymbol`. 
+Unfortunately, the metadata describing a method doesn't contain a pointer to define the type.
+This info is stored in the type definition.
+So, at the start of parsing a new CIL module, we make indices of which method or field belongs to what type and then use it to navigate `NamedTypeSymbol` defining these symbols.
+
+#### Exception handling
+
+There are two moments when an exception occurs.
+Special instruction `THROW` or `RETHOW` is executed or an instruction itself throws an exception.
+We handle both situations in CILOSTAZOL.
+When `THROW` is called, we resolve the referenced type of the exception which should be thrown, wrap it into a customized Java exception and throw it in the interpreter.
+For the second situation, we sanitized places, where the exception can be raised based on the standard and throw appropriate exceptions as well.
+Note that we don't collect info about stack trace and other data because it would complicate the code since it uses unsupported features.
+
+Handling is done by wrapping the main switch node by a `try-catch` block and catching our customized exception containing the CIL exception.
+If the exception occurred, we filter the table of exception handlers defined in `MethodSymbol` and jump to the appropriate handler, if there is any.
+
+#### Static analysis
+
+- Static analysis
+
+#### Stub methods and STDLIB
+
+- Extern umnanaged code
+- STDLIB
+
+#### Nodeization
+
+Nodeization is a process where we wrap the funcationality of an instruction to executable node, store it and patch the CIL code by our custom opcode for invoking the stored node.
+This process eanbles Truffle to cache static data required by the instruction for next evaluation.
+
+> Overview of nodeization
+>
+> ![nodeization](./img/Nodeization.png)
+
+We created three nodeized instructions: `CALLNode`, `NEWOBJNode`, and `JMPNode`.
+
+#### OSR
+
+OSR is done by implementing the `BytecodeOSRNode` interface. 
+It consists of checking every jump to the instruction on the lower address and trying to do OSR by invoking Truffle API.
+When Truffle decides to do OSR, it invokes implemented `executeOSR(VirtualFrame osrFrame, int target, Object interpreterState)` method passing the actual frame and instruction pointer. It also enables passing user-defined additional data which represents the interpreter state. In our case, we have to share a current position on the stack.
 
 ### Launcher
 
@@ -180,7 +372,7 @@ More info about `SymbolResolver` can be found in the type system section.
  - description
  - cmd line args
 
-## Benchmarks
+## Tests
 
 ### Own tests
 
@@ -195,6 +387,10 @@ More info about `SymbolResolver` can be found in the type system section.
    - musi se osekat
  - porovnat s BACILem
    - rict proc je bacil asi rychlejsi
+
+## Conslusion
+
+- achieved goals
 
 ## Apendix
   - co je potreba ke spusteni
