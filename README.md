@@ -179,9 +179,16 @@ When we want to find out entities of constructed types of methods, we use this m
 
 #### Static object model
 
+Primitives are represented by Java primitives.
+Although, we have to be careful during interpreting unsigned versions of CIL primitives since Java doesn't have an equivalent for them.
+
 We used Truffle API for creating static objects and created our own `StaticObject` with a field of `TypeSymbol` type representing a reference to metadata symbol.
 It allows us to implement virtual methods and other things described later.
 We also created `StaticField` representing fields of a CIL object.
+
+> Overview of data representation in CILOSTAZOL
+>
+> ![SOM](./img/SOM.png)
 
 Data representation of classes and structs are the same in CILOSTAZOL. 
 We just treat them differently to save reference and value semantics.
@@ -199,9 +206,6 @@ Managed pointers are quite tricky because according to ECMA standard, it pushes 
 This behavior is unachievable for us since we implement the interpreter in Java.
 Instead of it, we have our own static objects containing the necessary components to access the pointed objects.
 For example, for managed pointer pointing to an element of an array, we create a static object instance containing the index of the array and the array as fields.
-
-Primitives are represented by Java primitives.
-Although, we have to be careful during interpreting unsigned versions of CIL primitives since Java doesn't have an equivalent for them.
 
 #### String
 
@@ -234,7 +238,7 @@ Besides the main loop in the node, we use the `CILOSTAZOLFrame` class responsibl
 
 > Overview of getting info about current types on the stack.
 >
->![types](./img/Frame.png)
+> ![types](./img/Frame.png)
 
 We using the static API of pushing and popping values in `VirtualFrame`.
 Most of the time, instruction type hints to us what kind of type will be pushed to the frame or popped from it.
