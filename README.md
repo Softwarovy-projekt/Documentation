@@ -1,12 +1,37 @@
 # CILOSTAZOL
 
+ - Describe problem 
+   - Why we chose to interpret CIL using GraalVM
+   - Say that BACIL exists and that it makes sense to improve it
+
 ## Existing technologies
+
+In the following chapter we will describe high level technologies we used in this project as well as exisitng solution for CIL interpretation - BACIL that we decided to build on.
 
 ### GraalVM
 
-> TODO: Overview
+GraalVM is a high-performance java virtual machine which is itself implemented in Java. This virtual machine aims to accelerate execution of java applications and other JVM based languages as well as othre languages such as JavaScript, Ruby, Python thanks to the Truffle framework [[1]](https://github.com/oracle/graal). 
 
-### Truffle
+Main advantages of this virtual machine as demonstrated at the discontinued course completed by all members of the team *NSWI176 - Practical Dynamic Compilation* [[2]](https://is.cuni.cz/studium/predmety/index.php?id=1a2b9c4c601830def5e8fe1d818e0444&tid=&do=predmet&kod=NSWI176&skr=2021) and its replacement *NSWI176 - Virtual Machines and Managed Runtimes* [[3]](https://is.cuni.cz/studium/predmety/index.php?id=1a2b9c4c601830def5e8fe1d818e0444&tid=&do=predmet&kod=NPRG076&skr=2022) are:
+
+ - fast startup time,
+ - low resource usage,
+ - improved security.
+
+GraalVM compiles Java applications ahead of time into standalone binaries which are naturally smaller, require less resources and according to the official GrallVM documentation [[4]](https://www.graalvm.org/latest/docs/introduction/) are up to a 100 times faster to start. We witnessed this behaviour during the course mentioned above.
+
+For the purpose of this project we used GraalVM a platform. Utilising the Truffle language implementation framework to provide hints to the GraalVM compiler that served as a JIT [[5]](https://en.wikipedia.org/wiki/Just-in-time_compilation) and finally the GraalVM virutal machine and JDK implementation to execute the program. The nomenclature is a little confusing as the term *GraalVM* is used interchangeeably to refer to the virtual machine itself as well as the platform consisting or even the Truffle framework. We will try to shed a bit of light on this problem with the following relationship diagram.
+
+```
+GraalVM
+├── GraalVM Compiler
+└── GraalVM SDK
+    └── Truffle framework
+        └── Truffle languages
+```
+
+
+### Truffle framework
 
 > TODO: Overview
 
