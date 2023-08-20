@@ -40,6 +40,10 @@ The Truffle language implementation framework also refered to just as Truffle is
 ### .NET
 
 > TODO: Overview
+> struct and classes (value and ref semantics)
+> String type
+> managed pointers
+> sz aarays vs. multiarrays
 
 ### BACIL
 
