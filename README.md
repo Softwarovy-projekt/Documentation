@@ -106,8 +106,9 @@ Because of it, we reimplemented the whole interpreter and used common parts of B
 
 ### Espresso
 
-> TODO: Diferencies between Java and C#
-  - proc jsme brali nekde inspiraci spis z roslynu (type system) 
+Although we got a lot of inspiration from Espresso, differences between CIL and bytecode are significant(generics, untyped instructions).
+So in the case of the type system, we got inspiration from Roslyn and adjust it to be partially evaluation friendly.
+In the case of untyped instructions, we created our own static analysis which determined the type of instructions statically. 
 
 ## Solution
 
