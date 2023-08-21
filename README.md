@@ -144,24 +144,52 @@ Espresso is a Java bytecode interpreter for the GraalVM [[16]](https://github.co
 
 ## Problem analysis
 
+Although Expresso showed that interpreting bytecode can be done by using the Truffle framework, we encountered several problems regarding the architecture of CIL and BACIL as a start project.
+In this section, we will mention the important ones.
+
 ### CIL vs. Bytecode
 
- - rozdil v instrukcich
- - proc je potreba staticka analyza
+There are arithmetic CIL instructions working with different types of operands.
+Although the high-level view on the instructions can look the same (e.g. adding two numbers),
+there is a difference between adding two floats and adding two integers at the low-level layer.
+So when we interpret values on the stack, we have to know their types to choose the correct version of the instruction.
+When we look at the equivalent instructions in bytecode, the instructions themselves differ between integer addition and float addition.
+However, we don't want to investigate the type of operands in the runtime since we interpreting statically-typed language.
+So we need to create an analysis of the CIL before we execute it in order to choose the correct version of instruction ahead of interpreting.
+ 
+We also have a different type system.
+We need to deal with `struct` which has value semantics in comparison with `class`.
+The main challenge is supporting generics that are not presented in bytecode.
+We can't get inspiration from Espresso or BACIL since bytecode doesn't contain it and BACIL doesn't support generics.
+However, we can look at metadata representation in the Roslyn compiler and adjust it to work with partial evaluation.
 
 ### BACIL 
 
-> TODO: Unsufficient type system, parser, bugs etc...
- - typovy system
- - problemy s parsrem -> zminit ze jsme nestihli polyglot api kvuli tomu
- - obcas nejake bugy
- - nektere instrukce nejsou implementovane
- - mirror specifikaci, kde jsme zminovali co v BACILu neni a my to udelame, nastinit, ze jsme to vsechno stihli
+CILOSTAZOL takes BACIL and tries to extend it.
+However, there are many difficulties, which make it hard.
+The biggest problem was the parser, which we thought we would use in our implementation.
+We had to add a large part of parsing metadata to be able to work with generics, exception handling, and interfaces.
+As we mention later in the text, the parser can be divided into two parts. 
+The first one we call a low-level parser, which was taken from BACIL.
+The rest of the parser had to be reimplemented.
+
+BACIL type system is restricted to a small part of CIL and can't be extended to support generics and other advanced constructs.
+So a new type system has to be created.
+
+BACIL's nonstandard way of treating stack also should be changed to use standard `VirtualFrame` which offers us broader API for working with it.
+
+We also have to change the execution node of BACIL since it doesn't handle exceptions and added OSR.
+
+The last change to be added is the static object model, which is different from the BACIL way.
+
+In conclusion, we think that BACIL is so interconnected that it is almost impossible to extend it to support our defined features.
+Because of it, we reimplemented the whole interpreter and used common parts of BACIL  
 
 ### Espresso
 
-> TODO: Diferencies between Java and C#
-  - proc jsme brali nekde inspiraci spis z roslynu (type system) 
+Although we got a lot of inspiration from Espresso, differences between CIL and bytecode are significant(generics, untyped instructions).
+So in the case of the type system, we got inspiration from Roslyn and adjust it to be partially evaluation friendly.
+In the case of untyped instructions, we created our own static analysis which determined the type of instructions statically. 
 
 ## Solution
 
@@ -263,6 +291,8 @@ It also provides API for determining the assignability of CIL types.
 `ReferenceTypeSymbol` represents managed pointers in CIL which consist of information about the actual location of the pointed entity (local variable, argument, object field, or array element), and the actual type of pointed object.
 
 `ArrayTypeSymbol` describes CIL arrays.
+
+> TODO: multiarrays
 
 `NamedTypeSymbol` describes named types in CIL including generic ones. It consists of other symbols for fields or methods.
 
@@ -427,12 +457,21 @@ If the exception occurred, we filter the table of exception handlers defined in 
 
 #### Static analysis
 
-- Static analysis
+> TODO: Static analysis
 
 #### Stub methods and STDLIB
 
-- Extern umnanaged code
-- STDLIB
+The standard library defines some methods as internal, which means that the implementation is provided by .NET runtime.
+Since we interpret just the standard library, we have to provide an implementation for them in our interpreter.
+Although we created a mechanism for providing a custom implementation of these methods, we didn't implement all of them.
+We also use this mechanism to provide an implementation of methods, which are used in our benchmarks and use unsupported CIL features.
+
+The main class responsible for providing these implementations is `RuntimeSpecificMethodImplementations`, where we can find a map of implemented methods.
+Its key is the signature of the method. The value is `CILRuntimeSpecificMethodNode` inheriting from `CILMethodNode` and enabling to add the implementation to the method definition. 
+
+> Overview of stub methods
+>
+> ![stub_methods](./img/STUB.png)
 
 #### Nodeization
 
