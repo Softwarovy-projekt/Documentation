@@ -611,7 +611,7 @@ We also cache `string` literals in our `GuestAllocator` because they are immutab
 `struct`s are represented in the same way as classes which is inefficient in comparison with .NET where the `struct`s
 are placed on the stack (if they can be placed there).
 However, we didn't find a better way how to do it in Truffle.
-We change the behavior of passing arguments, assignments and etc. based on the `TypeSymbol` of `StaticObject`.
+We change the behavior of passing arguments, assignments etc. based on the `TypeSymbol` of `StaticObject`.
 
 > TODO: mention how work multi-arrays
 
@@ -834,8 +834,8 @@ Moving forward, the interpreter should be made more PE-friendly to enable OSR to
 We inherited the abstract `AbstractLanguageLauncher` class to make a custom `CILOSTAZOLLauncher` launcher which evaluates the given `.dll` file.
 Although the CILOSTAZOL engine options are defined in the `language` module, we list defined options here because of their straight relation to the launcher.
 
-| Option | Description |
-| --- | --- |
+| Option          | Description                                                   |
+|-----------------|---------------------------------------------------------------|
 | cil.libraryPath | Describes additional path containing .NET standard libraries. |
 
 
@@ -854,6 +854,14 @@ Tests that do not require the interpreter are much easier to test as we can insp
 objects directly. For tests that do require the whole interpreter run, we are left with two options. We can inspect the
 return code of the program or the standard output. Both options require a significant amount of implementation to work
 properly. In the first part of the project, we naturally used smaller tests that did not require the interpreter.
+
+As we are developing an interpreter that works with CIL, we are faced with the challenge of obtaining CIL code that we
+can test.
+We have decided to use C# as a language for writing tests as it is the most natural choice.
+In order to validate that the written C# code produces the CIL opcodes that we expect,
+we extensively used the JetBrains decompiler and SharpLab tool.
+This way, we can check what CIL code is produced by the C# code we have written and navigate the state of the execution 
+of the interpreter much more easily.
 
 Since each test requires compiled C# code that it can test, we have created three different approaches to make writing
 tests as easy and pleasant as possible as well as stay reasonably efficient while debugging problems.
@@ -893,9 +901,9 @@ The first approach was too slow and tedious.
 #### Test from file
 
 The third approach combines the worst of the previous two. You write the C# code to a specific file, therefore, you can
-not
-see it and have to switch windows while writing tests, and you also have to wait before it compiles. We ended up not
-using this approach at all apart from the example tests we wrote for this method in the `TestTemplates` class.
+not see it and have to switch windows while writing tests, and you also have to wait before it compiles. 
+We ended up not using this approach at all apart from the example tests we wrote for this method in the `TestTemplates` 
+class.
 
 In the `TestBase` class which implements helper methods for compiling and running the interpreter we have helper methods
 for the launcher itself for integration tests. To run launcher, we have to set up paths to the standard library. The
@@ -1055,7 +1063,7 @@ the beginning of the development process, we have agreed to push directly into m
 - working on the first issue meant changing bits of code all over the place,
 - none of the team members was yet very familiar with the code base,
 - there weren't any tests that could verify the correctness.
-  This approach turned out to be a good step forward as it incentive us to more frequent discussions about what we do
+  This approach turned out to be a good step forward as it incentives us to more frequent discussions about what we do
   and where we want to make changes, how well we understand the codebase and what architectural ideas do we have for the
   next issues.
 
