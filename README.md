@@ -840,7 +840,29 @@ appropriate handler, if there is any.
 
 #### Static analysis
 
-> TODO: Static analysis
+The problem of not having typed instructions that do require the knowledge of types of its operands is solved by static analysis. When required the `StaticOpCodeAnalyser.analyseOpCodes()` is called and the static analysis is performed. The output is an array with types for each opcode that requires such information. The stack allows only limited set of types to be stored on it:
+ - `int32`,
+ - `int64`,	
+ - `native int`,
+ - `native float`,
+ - `object`,
+ - `managed pointer`.
+
+Some opcodes such as the `NEG` which negates value on the stack behaves differently for different types.
+
+The static analysis simulates the interpreter abu only keeps track of what types are being put on the stack. Since we do not know the exact values on the stack we are unable to branch correctly and therefore we have to look through all options at least once. We still visit each opcode only once though. Before each brancjhing instruction we have to rembember the current stack state and the instruction to which we are supposed to jump next. This branche exploring is done in a depth-first search manner.
+
+Some more complexity is brought by handling exceptions. That can be actually solved pretty easily as we first explore the code without exceptions and only then we explore the exception handlers - `catch` clauses. Although we have to be carefull with the `finally` clasuses and make sure that we do not explore anything twice and perform the jumps correctly.
+
+> Visualisation of the static analysis flow.
+> ![static analysis](img/static_analysis.png)
+
+The implementation uses the charasteristic of a depth-first search. We first put in all entry points of the analysis starting with the exception handlers, then the very first opcode. Then in a loop we handle the opcode, get the following opcode which we push onto the visit stack if valid and continue as before. 
+
+Handling of the opcodes is very straingth forward. Either we push some specific type onto the stack. For example with the `LDC.I4` we push `int32` onto the stack. With opcodes that require type information we first gather the types of the operands and then we push the result type onto the stack and mark the operand types in the result array. Note that the opcode types are gathered in an enum `OpCodeType`. That is because it is different from the `StackType` which is a list of types that are allowed to be on the stack. The `OpCodeType` is an extension of that as some opcodes allow mix use of two different operands and we have to keep track of both of them. Therefore opcode type such as `Int64_Int32` denoting two operands one of stack type `int64` and the other of type `int32` is possible.
+
+This method allows us to perform CIL verification as well. The *Partition III CIL 1.5* specifies which operands are allowed for each opcode.
+
 
 #### Stub methods and STDLIB
 
