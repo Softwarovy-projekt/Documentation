@@ -670,19 +670,105 @@ appropriate handler, if there is any.
 #### Stub methods and STDLIB
 
 The standard library defines some methods as internal, which means that the implementation is provided by .NET runtime.
-Since we interpret just the standard library, we have to provide an implementation for them in our interpreter.
-Although we created a mechanism for providing a custom implementation of these methods, we didn't implement all of them.
-We also use this mechanism to provide an implementation of methods, which are used in our benchmarks and use unsupported
-CIL features.
+Since we interpret just the standard library, we have to provide an implementation for them in our runtime.
 
-The main class responsible for providing these implementations is `RuntimeSpecificMethodImplementations`, where we can
-find a map of implemented methods.
-Its key is the signature of the method. The value is `CILRuntimeSpecificMethodNode` inheriting from `CILMethodNode` and
-enabling to add the implementation to the method definition.
+For this purpose, we created a mechanism for providing an implementation of these methods.
+Whenever we are resolving a method and creating its `CILOSTAZOLRootNode`,
+we can choose between a regular `CILMethodNode` or `CILRuntimeSpecificMethodNode`.
+Whereas `CILMethodNode` features the regular loop for interpreting CIL instructions, `CILRuntimeSpecificMethodNode`
+refers to a function, which provides an implementation of the method.
 
 > Overview of stub methods
 >
 > ![stub_methods](./img/STUB.png)
+
+The implementation, represented by `Function<VirtualFrame, Object>`, references a static function that similarly to the
+`CILMethodNode` accepts a frame and returns an object.
+Inside the function, we can use the API of `CILOSTAZOLFrame` to get the arguments of the method and return the result.
+The API is minimal and contains just the necessary parameters for implementing the method.
+If we need to allocate objects or perform similar complex operations,
+we can use the `CILOSTAZOLContext` to get the necessary services.
+
+Whenever a method is missing an implementation or needs a custom implementation, we change its node to a 
+`CILRuntimeSpecificMethodNode`.
+
+A is missing an implementation whenever its Relative Virtual Address (RVA) is zero.
+As a result, we cannot interpret the method, since we don't know its instructions.
+This can happen when the method has a `MethodImplOptions.InternalCall` attribute and refers to a method, which is
+implemented by the runtime.
+In this case, we have to create our own implementation of the method.
+Many performance-critical methods are implemented this way.
+Below is an example of some of many methods from the `System.Math` class, which are implemented this way.
+
+```csharp
+[Intrinsic]
+[MethodImpl(MethodImplOptions.InternalCall)]
+public static extern double Cos(double d);
+
+[Intrinsic]
+[MethodImpl(MethodImplOptions.InternalCall)]
+public static extern double Cosh(double value);
+
+[Intrinsic]
+[MethodImpl(MethodImplOptions.InternalCall)]
+public static extern double Exp(double d);
+
+[Intrinsic]
+[MethodImpl(MethodImplOptions.InternalCall)]
+public static extern double Floor(double d);
+```
+
+Other times, we might come across a method, which has a body that could be interpreted, but we want to provide a custom
+implementation.
+A good example of this are IO methods, which use threading, culture, and other features,
+which are not supported by our interpreter yet.
+Below is an example of how the `System.Console` class initializes its output stream,
+which is a static property and *must* be initialized before it is used.
+The example uses `Monitor` and `Volatile` classes, which are not supported by our interpreter yet.
+
+```csharp
+public static TextWriter Out
+{
+    get
+    {
+        // Console.Out shouldn't be locked while holding a lock on s_syncObject.
+        // Otherwise there can be a deadlock when another thread locks these
+        // objects in opposite order.
+        //
+        // Some functionality requires the console to be initialized.
+        // On Linux, this initialization requires a lock on Console.Out.
+        // The EnsureConsoleInitialized call must be placed outside the s_syncObject lock.
+        Debug.Assert(!Monitor.IsEntered(s_syncObject));
+
+        return Volatile.Read(ref s_out) ?? EnsureInitialized();
+
+        static TextWriter EnsureInitialized()
+        {
+            lock (s_syncObject) // Ensures Out and OutputEncoding are synchronized.
+            {
+                if (s_out == null)
+                {
+                    Volatile.Write(ref s_out, CreateOutputWriter(ConsolePal.OpenStandardOutput()));
+                }
+                return s_out;
+            }
+        }
+    }
+}
+```
+
+Although we created a mechanism for providing a custom implementation of standard library methods, we didn't implement 
+all of them.
+We also use this mechanism to provide an implementation of methods, which are used in our benchmarks and use unsupported
+CIL features.
+
+The programmer can implement the functions for handling missing methods in any file and then register them in the
+`RuntimeSpecificMethodImplementations` class.
+There, a map of implemented methods is stored.
+Currently, we use the string representation of the method signature as a key.
+While this is not the most efficient way, it is the easiest to implement.
+Moreover, the resolution of the method is done only once, so it doesn't greatly affect the performance of the 
+interpreter.
 
 #### Nodeization
 
