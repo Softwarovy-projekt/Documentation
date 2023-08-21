@@ -71,6 +71,7 @@ on the level of the .NET runtime and the CIL itself.
       - [Benchmarking script](#benchmarking-script)
       - [Results](#results)
   - [Development process](#development-process)
+  - [Feature improvements](#feature-improvements)
   - [Conclusion](#conclusion)
   - [Appendix](#appendix)
     - [Overview of promised features](#overview-of-promised-features)
@@ -1264,6 +1265,16 @@ As soon as we've reached a point where problems could be divided into reasonably
 traditional approach of creating a branch for each task and merging it into master via a pull request. Although we have
 still often switched to messaging or online calls when some questions or notes arose during reviews.
 
+## Feature improvements
+
+The next step would be support type and accessibility checking which need to use already parsed metadata and add checkers into methods handling instructions in `CILMethodNode`.
+
+We didn't investigate threads, although, it would be needed to implement native calls and probably implement some internal methods provided by the .NET runtime itself.
+
+We didn't investigate native calls as well, although it could be done by invoking Java JNI or in the case of uncommon conventions, providing our own trampolines implemented in C++ and calling it from Java.
+
+To be able to fully use the standard library, all CIL constructs have to be supported. It means to also support nested classes, properties, methods semantics, etc.. which is out of the scope of this work.
+
 ## Conclusion
 
 - achieved goals
@@ -1282,7 +1293,7 @@ We provide an overview of completed features and give a reason for those ones, w
 | 0.0.2 | Not completed | It is voluntary and we had to deal with other problems which occurred during implementation.
 | 0.0.3 | Completed | We were able to interpret standard library exceptions and use them. However, runtime information stored in the exceptions was out of the scope of this work because of other unsupported features used by them. |
 | 0.0.4 | Completed | - |
-| 0.0.5 | Not completed | ??? |
+| 0.0.5 | Completed | - |
 | 0.1.0 | Completed | - |
 | 0.1.1 | Almost completed | We don't support the `decimal` representation. |
 | 0.1.2 | Completed | - |
@@ -1291,7 +1302,7 @@ We provide an overview of completed features and give a reason for those ones, w
 | 1.0.2 | Completed | - |
 | 1.0.3 | Completed | - |
 | 1.0.4 | Completed | - |
-| 1.0.5 | Not completed | ??? |
+| 1.0.5 | Completed | - |
 | 1.1.0 | Not completed | Unexpected problems with different parts of the project. |
 | 1.1.1 | Not completed | Unexpected problems with different parts of the project. |
 | 1.1.2 | Not completed | Unexpected problems with different parts of the project. |
