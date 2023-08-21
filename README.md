@@ -1097,10 +1097,6 @@ still often switched to messaging or online calls when some questions or notes a
 
 ## Appendix
 
-- co je potreba ke spusteni
-- jak to spustit
-> TODO: How to run it (inspirace z TestsAndBenchmarks/Runner/main.py, kde CILOSTAZOL je spousten)
-
 ### Overview of promised features
 
 We set a list of features that we wanted to accomplish in the specification.
