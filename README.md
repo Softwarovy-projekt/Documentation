@@ -1295,6 +1295,7 @@ We didn't investigate threads, although, it would be needed to implement native 
 We didn't investigate native calls as well, although it could be done by invoking Java JNI or in the case of uncommon conventions, providing our own trampolines implemented in C++ and calling it from Java.
 
 To be able to fully use the standard library, all CIL constructs have to be supported. It means to also support nested classes, properties, methods semantics, etc.. which is out of the scope of this work.
+However, adding mentioned constructs to the current type system shouldn't be difficult since our symbols system was designed to be extendible from the start. 
 
 ## Conclusion
 
