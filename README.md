@@ -745,10 +745,13 @@ Moving forward, the interpreter should be made more PE-friendly to enable OSR to
 
 ### Launcher
 
-> TODO:
+We inherited the abstract `AbstractLanguageLauncher` class to make a custom `CILOSTAZOLLauncher` launcher which evaluates the given `.dll` file.
+Although the CILOSTAZOL engine options are defined in the `language` module, we list defined options here because of their straight relation to the launcher.
 
-- description
-- cmd line args
+| Option | Description |
+| --- | --- |
+| cil.libraryPath | Describes additional path containing .NET standard libraries. |
+
 
 ## Tests
 
