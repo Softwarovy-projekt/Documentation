@@ -895,7 +895,7 @@ The problem of not having typed instructions that do require the knowledge of ty
 
 Some opcodes such as the `NEG` which negates value on the stack behaves differently for different types.
 
-The static analysis simulates the interpreter abu only keeps track of what types are being put on the stack. Since we do not know the exact values on the stack we are unable to branch correctly and therefore we have to look through all options at least once. We still visit each opcode only once though. Before each brancjhing instruction we have to rembember the current stack state and the instruction to which we are supposed to jump next. This branche exploring is done in a depth-first search manner.
+The static analysis simulates the interpreter but only keeps track of what types are being put on the stack. Since we do not know the exact values on the stack we are unable to branch correctly and therefore we have to look through all options at least once. We still visit each opcode only once though. Before each brancjhing instruction we have to rembember the current stack state and the instruction to which we are supposed to jump next. This branche exploring is done in a depth-first search manner.
 
 Some more complexity is brought by handling exceptions. That can be actually solved pretty easily as we first explore the code without exceptions and only then we explore the exception handlers - `catch` clauses. Although we have to be carefull with the `finally` clasuses and make sure that we do not explore anything twice and perform the jumps correctly.
 
@@ -1346,7 +1346,7 @@ the beginning of the development process, we have agreed to push directly into m
 
 As soon as we've reached a point where problems could be divided into reasonably big issues, we have switched to a more
 traditional approach of creating a branch for each task and merging it into master via a pull request. Although we have
-still often switched to messaging or online calls when some questions or notes arose during reviews.
+still often switched to messaging or online calls when some questions or notes arose during reviews. The workload was divided among team members based on their interests. Usually two people were working together on one feature which was blocking other progress. The third was working on his a different non-blocking feature that was independent of others.
 
 ## Feature improvements
 
@@ -1394,7 +1394,9 @@ a meta interpreter which was originally out of scope for this project.
 We then leveraged OSR support that Truffle offers to improve the performance of the interpreter even further.
 
 All this was done while practicing good software engineering practices, such as code reviews, unit testing, and
-continuous integration.
+continuous integration. Because all team members come form C# background we used to have tendencies to write the Java 
+code in a C# like manner. To prevent this, we have set up a pipeline that would verify the code style and formatting 
+and refactored the code to follow the Java conventions.
 We were able to push new functionality faster due to working pipelines that we set up during the start of the project.
 We have also created a benchmarking script that allowed us to compare the performance of our interpreter to the .NET
 runtime.
@@ -1447,6 +1449,63 @@ Because of these issues, we didn't make polyglot API, which can be considered *n
 ### List of supported opcodes
 
 
+| Opcode | Supported | | Opcode | Supported | | Opcode | Supported | | Opcode | Supported |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `nop` | OK || `break` | OK || `ldarg.0` | OK || `ldarg.1` | OK |
+| `ldarg.2` | OK || `ldarg.3` | OK || `ldloc.0` | OK || `ldloc.1` | OK |
+| `ldloc.2` | OK || `ldloc.3` | OK || `stloc.0` | OK || `stloc.1` | OK |
+| `stloc.2` | OK || `stloc.3` | OK || `ldarg.s` | OK || `ldarga.s` | OK |
+| `starg.s` | OK || `ldloc.s` | OK || `ldloca.s` | OK || `stloc.s` | OK |
+| `ldnull` | OK || `ldc.i4.m1` | OK || `ldc.i4.0` | OK || `ldc.i4.1` | OK |
+| `ldc.i4.2` | OK || `ldc.i4.3` | OK || `ldc.i4.4` | OK || `ldc.i4.5` | OK |
+| `ldc.i4.6` | OK || `ldc.i4.7` | OK || `ldc.i4.8` | OK || `ldc.i4.s` | OK |
+| `ldc.i4` | OK || `ldc.i8` | OK || `ldc.r4` | OK || `ldc.r8` | OK |
+| `dup` | OK || `pop` | OK || `jmp` | OK || `call` | OK |
+| `calli` | X || `ret` | OK || `br.s` | OK || `brfalse.s` | OK |
+| `brtrue.s` | OK || `beq.s` | OK || `bge.s` | OK || `bgt.s` | OK |
+| `ble.s` | OK || `blt.s` | OK || `bne.un.s` | OK || `bge.un.s` | OK |
+| `bgt.un.s` | OK || `ble.un.s` | OK || `blt.un.s` | OK || `br` | OK |
+| `brfalse` | OK || `brtrue` | OK || `beq` | OK || `bge` | OK |
+| `bgt` | OK || `ble` | OK || `blt` | OK || `bne.un` | OK |
+| `bge.un` | OK || `bgt.un` | OK || `ble.un` | OK || `blt.un` | OK |
+| `switch` | OK || `ldind.i1` | OK || `ldind.u1` | OK || `ldind.i2` | OK |
+| `ldind.u2` | OK || `ldind.i4` | OK || `ldind.u4` | OK || `ldind.i8` | OK |
+| `ldind.i` | OK || `ldind.r4` | OK || `ldind.r8` | OK || `ldind.ref` | OK |
+| `stind.ref` | OK || `stind.i1` | OK || `stind.i2` | OK || `stind.i4` | OK |
+| `stind.i8` | OK || `stind.r4` | OK || `stind.r8` | OK || `add` | OK |
+| `sub` | OK || `mul` | OK || `div` | OK || `div.un` | OK |
+| `rem` | OK || `rem.un` | OK || `and` | OK || `or` | OK |
+| `xor` | OK || `shl` | OK || `shr` | OK || `shr.un` | OK |
+| `neg` | OK || `not` | OK || `conv.i1` | OK || `conv.i2` | OK |
+| `conv.i4` | OK || `conv.i8` | OK || `conv.r4` | OK || `conv.r8` | OK |
+| `conv.u4` | OK || `conv.u8` | OK || `callvirt` | OK || `cpobj` | OK |
+| `ldobj` | OK || `ldstr` | OK || `newobj` | OK || `castclass` | OK |
+| `isinst` | OK || `conv.r.un` | OK || `unbox` | OK || `throw` | OK |
+| `ldfld` | OK || `ldflda` | OK || `stfld` | OK || `ldsfld` | OK |
+| `ldsflda` | OK || `stsfld` | OK || `stobj` | OK || `conv.ovf.i1.un` | OK |
+| `conv.ovf.i2.un` | OK || `conv.ovf.i4.un` | OK || `conv.ovf.i8.un` | OK || `conv.ovf.u1.un` | OK |
+| `conv.ovf.u2.un` | OK || `conv.ovf.u4.un` | OK || `conv.ovf.u8.un` | OK || `conv.ovf.i.un` | OK |
+| `conv.ovf.u.un` | OK || `box` | OK || `newarr` | OK || `ldlen` | OK |
+| `ldelema` | OK || `ldelem.i1` | OK || `ldelem.u1` | OK || `ldelem.i2` | OK |
+| `ldelem.u2` | OK || `ldelem.i4` | OK || `ldelem.u4` | OK || `ldelem.i8` | OK |
+| `ldelem.i` | OK || `ldelem.r4` | OK || `ldelem.r8` | OK || `ldelem.ref` | OK |
+| `stelem.i` | OK || `stelem.i1` | OK || `stelem.i2` | OK || `stelem.i4` | OK |
+| `stelem.i8` | OK || `stelem.r4` | OK || `stelem.r8` | OK || `stelem.ref` | OK |
+| `ldelem` | OK || `stelem` | OK || `unbox.any` | OK || `conv.ovf.i1` | OK |
+| `conv.ovf.u1` | OK || `conv.ovf.i2` | OK || `conv.ovf.u2` | OK || `conv.ovf.i4` | OK |
+| `conv.ovf.u4` | OK || `conv.ovf.i8` | OK || `conv.ovf.u8` | OK || `refanyval` | OK |
+| `ckfinite` | X || `mkrefany` | OK || `ldtoken` | X || `conv.u2` | OK |
+| `conv.u1` | OK || `conv.i` | OK || `conv.ovf.i` | OK || `conv.ovf.u` | OK |
+| `add.ovf` | OK || `add.ovf.un` | OK || `mul.ovf` | OK || `mul.ovf.un` | OK |
+| `sub.ovf` | OK || `sub.ovf.un` | OK || `endfinally` | OK || `leave` | OK |
+| `leave.s` | OK || `stind.i` | OK || `conv.u` | OK || `arglist` | X |
+| `ceq` | OK || `cgt` | OK || `cgt.un` | OK || `clt` | OK |
+| `clt.un` | OK || `ldftn` | X || `ldvirtftn` | X || `ldarg` | OK |
+| `ldarga` | OK || `starg` | OK || `ldloc` | OK || `ldloca` | OK |
+| `stloc` | OK || `localloc` | X || `endfilter` | X || `unaligned.` | X |
+| `volatile.` | X || `tail.` | X || `initobj` | OK || `constrained.` | X |
+| `cpblk` | X || `initblk` | X || `no.` | X || `rethrow` | OK |
+| `sizeof` | OK || `refanytype` | OK || `readonly.` | X |
 
 ### User guide
 
