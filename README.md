@@ -191,6 +191,10 @@ Although we got a lot of inspiration from Espresso, differences between CIL and 
 So in the case of the type system, we got inspiration from Roslyn and adjust it to be partially evaluation friendly.
 In the case of untyped instructions, we created our own static analysis which determined the type of instructions statically. 
 
+### Multi-dimensional arrays
+> TODO: Jan 
+> popsat ze je musime generovat a jak to udelame
+
 ## Solution
 
 The solution consists of many parts responsible for distinct purposes. 
@@ -498,13 +502,53 @@ When Truffle decides to do OSR, it invokes implemented `executeOSR(VirtualFrame 
 
 ## Tests
 
+In the following sections we will describe how we tested our interpreter and what we tested.
+
 ### Own tests
 
- - popsat jak jsme to testovali - framework
-   - test from file, dll, code
- - proc tak dlouho trvaj
- - tabulka s otestovanyma featurama ze specky
- - tabulka s otestovanyma opcodama
+Tests are divided into two categories. One that requires the whole interpreter to run and one that can run without the interpreter. Neither of those set of tests are unit tests as that would test only very small parts which is insufficient for our purposes. 
+
+Tests that do not require the interpreter are much easier to test as we can inspect parsed and computed values on the objects directly. For tests that do require the whole interpreter run we are left with two options. We can inspect the return code of the program or the standard output. Both options require significant amount of implementation to work properly. In the first part of the project we naturally used smaller tests that did not require the interpreter.
+
+Since each test requires compiled C# code that it can test, we have created three different approaches to make writing tests as easy and pleasant as possible as well as stay reasonably efficient while debugging problems.
+
+#### Test from dll
+
+First approach requires to have compiled dll file available before running the tests. Test targets themselves are gathered in a solution that is compiled using a script so that it can be automated. This approach is the fastest as we do not waste much time on compiling the C# code before each test execution and is therefore well suited for debugging. This approach is heavily utilised in the batch of tests that do not require interpreter and test the parser and other parts such as generic type substitution.
+
+These tests are located in the `language` module. Each batch of tests has its own project. For these tests we dont need executable dlls with entrypoint `Main` method as we are mostly interested only in parsing. Therefore we can vrite multiple test targets in one project which is convenient.
+
+Downsight of this approach is that you have to have another window open to see the C# code you are testing.
+
+#### Test from code
+
+Second approach is to write the C# code directly in the test. While developing in IntelliJ we can even get som ebasic syntax highlighitng thanks to the IntelliJ string annotations. This code is then copied into a file in a temporary directory and only then compiled on demand. Test targets that require an entry point must be each implemented in it's own assembly. 
+
+The main advantage is fast test writing as one does not have to leave one file and can just keep writing. With top-level statements there is very little overhead code. The downside is that the compilation takes a lot of time. When debugging we have opted to the first testing method but for the convenience of writing tests we have kept this approach for most of the tests.
+
+We ended up using this approach for most of the tests that require the interpreter to run located at the `test` module. The first approach was too slow and tidious.
+
+#### Test from file
+
+Third approach combines the worst of the previous two. You write the C# code to a specific file therefore you can not see it and have to switch windows while writing tests and you also have to wait before it compiles. We ended up not using this approach at all appart from the example tests we wrote for this method in the `TestTemplates` class.
+
+
+In the `TestBase` class which implements helper methods for compiling and running the interpreter we have helper methods for the launcher itself for integration tests. To run launcher we have to setup paths to the standard library. The launcher itself is not very configurable therefore we would not be able to executed program's output which is one of the very few ways we can test the whole system. Templates utilising the launcher are marked as deprecated due to exacly those reasons and it is recommended to use templates that evaulate the context directly.
+
+### Pipeline
+
+We have automated all the tests in our pipeline which ran on every merge request together with java format check. Since the compilation of tests took a significant amount of time to complete we have divided the pipeline into several steps:
+  - format check,
+  - compilation of the interpreter,
+  - compilation of the test targets,
+  - execution of the tests.
+
+ This way we had a feedback provided in episodes that allowed us to work on fixes for each step of the pipeline individually.
+
+
+### Granularity
+List of tested opcodes:
+ > TODO: Jan 
 
 ### Benchmark game
  - popsat problemy
@@ -513,13 +557,30 @@ When Truffle decides to do OSR, it invokes implemented `executeOSR(VirtualFrame 
    - rict proc je bacil asi rychlejsi
 
 ## Development process
- - tydeni meetingy
- - komunikace
- - PRs
- - Pipelina
- - Konzultace s Gocnikem
+
+ CILOSTAZOL was developed in a team of three members - Tomáš Husák, Denis Leskovar, Jan Kleprlík in cooperation with Štěpán Šindelář providing helpful technical consultations and supervised by Tomáš Petříček.
+
+ The development process started with heavy analysis of the problem domain and an existing solution.
+
+Even though the work on the project was initially slow the we managed to hold weekly meetings every Thursday throughout the whole period to discuss the progress, problems and plans for the next week.
+
+For collaboration we have initially used Trello to keep track of tasks and their progress. This has turned out not to be very effective as none of the team members used the tool outside of the project. We have then swithced to GitHub where we kept track of research progress, insights as well as the tasks themselves. Bth for the research and implementation part of this project. 
+
+For the initial research we even consulted with the author of BACIL - Jan Gocník.
+
+Team communication was done via Messenger app and Google-meets as every team member was available on those platforms most of the time.
+
+In order to keep the programming standard at a reasonable level early in the development we unified the development environment to IntelliJ IDEA, setup automatic java-formatting adn setup a pipeline that would veryfi this for us.  n the beggining of the development process we have agreed to push directly into master due to several reasons:
+  - first issue could not be easily separated into smaller tasks,
+  - working on the first issue meant changing bits of code all over the place,
+  - none of the team members was yet very familiar with the code base,
+  - there were't any tests that could verify the corectness.
+This approach turned out to be a good step forward as it incentivised us to more frequent discussions about what we do and where we want to make changes, how well we understand the codebase and what architectural ideas do we have for the next issues.
+
+As soon as we've reached a point where problems could be divided into reasonably big issues we have switched to a more traditional approach of creating a branch for each task and merging it into master via a pull request. Although we have still often swithced to messaging or online calls when some questions or notes arose during reviews. 
 
 ## Conslusion
+
 
 - achieved goals
 
