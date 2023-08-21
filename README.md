@@ -14,7 +14,7 @@ edge-cases.
 In theory, it should not matter what language emits the CIL code, but some details might vary.
 For testing and development purposes, we have decided to use C# mainly for two reasons.
 Firstly, it was used for BACIL already.
-Secondly, all team members are familiar with it not only on the level of the language itself but also in some aspects 
+Secondly, all team members are familiar with it not only on the level of the language itself but also in some aspects
 on the level of the .NET runtime and the CIL itself.
 
 ## Existing technologies
@@ -52,7 +52,7 @@ For the purpose of this project, we used GraalVM a platform.
 Utilising the Truffle language implementation framework to
 provide hints to the GraalVM compiler that served as a JIT [[7]](https://en.wikipedia.org/wiki/Just-in-time_compilation)
 and finally the GraalVM virtual machine and JDK implementation to execute the program.
-The nomenclature is a little confusing as the term *GraalVM* is used interchangeably to refer to the virtual machine 
+The nomenclature is a little confusing as the term *GraalVM* is used interchangeably to refer to the virtual machine
 itself as well as the platform
 consisting or even the Truffle framework.
 We will try to shed a bit of light on this problem with the following
@@ -98,10 +98,11 @@ Some of the annotations we have used are:
 
 Thanks to these annotations, we are able to tell the compiler that something may have become a constant, and it should
 be treated as one.
-Since partial evaluation is well described both in the project we are building upon - BACIL this introductory tutorial 
-of how to implement a new language with Truffle [[11]](https://docs.oracle.com/en/graalvm/enterprise/20/docs/graalvm-as-a-platform/language-implementation-framework/LanguageTutorial/#implementing-a-new-language-with-truffle)
+Since partial evaluation is well described both in the project we are building upon - BACIL this introductory tutorial
+of how to implement a new language with
+Truffle [[11]](https://docs.oracle.com/en/graalvm/enterprise/20/docs/graalvm-as-a-platform/language-implementation-framework/LanguageTutorial/#implementing-a-new-language-with-truffle)
 provided by Oracle, we will not explore it into every detail.
-However, for clarity and completeness, we will provide a simple example which is explained in both sources in various 
+However, for clarity and completeness, we will provide a simple example which is explained in both sources in various
 forms.
 
 In the following pseudocode we will demonstrate usage of `CompilationFinal` and `transferToInterpreterAndInvalidate`.
@@ -147,7 +148,7 @@ interpreted by a *Common Language Runtime* or *CLR*. This is the part we will be
 
 BACIL already implements the raw core of the interpreter and the bytecode parser but completely ignores other parts
 which we will try to handle.
-It is worth noting some details from the *Common Language Infrastructure* - *CLI* that be useful and are important for 
+It is worth noting some details from the *Common Language Infrastructure* - *CLI* that be useful and are important for
 us to be able to extend BACIL.
 CLI is a
 standard [[13]](https://www.ecma-international.org/publications-and-standards/standards/ecma-335/) that provides
@@ -183,7 +184,8 @@ types.
 #### String
 
 String is a built-in reference type in the CLI. It may seem that we can treat strings like an ordinary object, but
-CLI exposes several differences between objects and strings. Strings have specialised instructions for installations.
+CLI exposes several differences between objects and strings.
+Strings have specialized instructions for installations.
 Object is instantiated using the `NEWOBJ` op code, yet the string uses the `LDSTR` opcode. After that, we may treat it
 like an ordinary object. We will have to be able to parse and interpret the source code if the standard library where
 the `String` class is defined. It also includes two important fields - length and an array of characters. Those two
@@ -263,8 +265,8 @@ the `Assembly` or alternatively `Module` in CLI.
 #### Runtime
 
 BACIL runtime is combined with parser which is making those two otherwise independent modules tightly coupled.
-Therefore, we have decided to untie the dependencies and create parser standalone. Due to lack of extendability of the 
-type system, we have decided to implement everything from scratch while reusing the parser and as much runtime as 
+Therefore, we have decided to untie the dependencies and create parser standalone. Due to lack of extendability of the
+type system, we have decided to implement everything from scratch while reusing the parser and as much runtime as
 possible.
 
 ### Espresso
@@ -689,7 +691,7 @@ The API is minimal and contains just the necessary parameters for implementing t
 If we need to allocate objects or perform similar complex operations,
 we can use the `CILOSTAZOLContext` to get the necessary services.
 
-Whenever a method is missing an implementation or needs a custom implementation, we change its node to a 
+Whenever a method is missing an implementation or needs a custom implementation, we change its node to a
 `CILRuntimeSpecificMethodNode`.
 
 A is missing an implementation whenever its Relative Virtual Address (RVA) is zero.
@@ -757,7 +759,7 @@ public static TextWriter Out
 }
 ```
 
-Although we created a mechanism for providing a custom implementation of standard library methods, we didn't implement 
+Although we created a mechanism for providing a custom implementation of standard library methods, we didn't implement
 all of them.
 We also use this mechanism to provide an implementation of methods, which are used in our benchmarks and use unsupported
 CIL features.
@@ -767,7 +769,7 @@ The programmer can implement the functions for handling missing methods in any f
 There, a map of implemented methods is stored.
 Currently, we use the string representation of the method signature as a key.
 While this is not the most efficient way, it is the easiest to implement.
-Moreover, the resolution of the method is done only once, so it doesn't greatly affect the performance of the 
+Moreover, the resolution of the method is done only once, so it doesn't greatly affect the performance of the
 interpreter.
 
 #### Nodeization
@@ -831,13 +833,29 @@ Moving forward, the interpreter should be made more PE-friendly to enable OSR to
 
 ### Launcher
 
-We inherited the abstract `AbstractLanguageLauncher` class to make a custom `CILOSTAZOLLauncher` launcher which evaluates the given `.dll` file.
-Although the CILOSTAZOL engine options are defined in the `language` module, we list defined options here because of their straight relation to the launcher.
+We inherited the abstract `AbstractLanguageLauncher` class to make a custom `CILOSTAZOLLauncher` launcher which
+evaluates the given `.dll` file.
+
+The launcher allows us to have control over the engine options and the language options.
+The `AbstractLanguageLauncher` class provides methods for override that allow us to parse the command-line arguments, 
+print the help message, and create the language context.
+We use these methods to extract the path to the `.dll` file from command-line arguments and print messages similar 
+to the ones provided by the `dotnet` CLI.
+
+Although the CILOSTAZOL engine options are defined in the `language` module, we list defined options here because of
+their straight relation to the launcher.
+While we could define multiple options for the launcher,
+we decided to use only one option for the path to the `.dll`, which is essential in order to run the program.
+Other options could include logging or debugging options, but we did not find a need for them.
 
 | Option          | Description                                                   |
 |-----------------|---------------------------------------------------------------|
 | cil.libraryPath | Describes additional path containing .NET standard libraries. |
 
+Additionally, the launcher measures the execution time of the program
+and prints it to the standard error stream together with the return code.
+This was first implemented in BACIL and left in the CILOSTAZOL launcher as it is a useful feature for separating the 
+time spent in the interpreter from the time spent compiling C# sources when running tests.
 
 ## Tests
 
@@ -860,7 +878,7 @@ can test.
 We have decided to use C# as a language for writing tests as it is the most natural choice.
 In order to validate that the written C# code produces the CIL opcodes that we expect,
 we extensively used the JetBrains decompiler and SharpLab tool.
-This way, we can check what CIL code is produced by the C# code we have written and navigate the state of the execution 
+This way, we can check what CIL code is produced by the C# code we have written and navigate the state of the execution
 of the interpreter much more easily.
 
 Since each test requires compiled C# code that it can test, we have created three different approaches to make writing
@@ -883,7 +901,7 @@ Down-sight of this approach is that you have to have another window open to see 
 #### Test from code
 
 The second approach is to write the C# code directly in the test.
-While developing in IntelliJ, we can even get some basic syntax highlighting thanks to the IntelliJ string annotations. 
+While developing in IntelliJ, we can even get some basic syntax highlighting thanks to the IntelliJ string annotations.
 This code is then copied into a file in a temporary
 directory and only then compiled on demand. Test targets that require an entry point must be each implemented in its
 own assembly.
@@ -901,8 +919,8 @@ The first approach was too slow and tedious.
 #### Test from file
 
 The third approach combines the worst of the previous two. You write the C# code to a specific file, therefore, you can
-not see it and have to switch windows while writing tests, and you also have to wait before it compiles. 
-We ended up not using this approach at all apart from the example tests we wrote for this method in the `TestTemplates` 
+not see it and have to switch windows while writing tests, and you also have to wait before it compiles.
+We ended up not using this approach at all apart from the example tests we wrote for this method in the `TestTemplates`
 class.
 
 In the `TestBase` class which implements helper methods for compiling and running the interpreter we have helper methods
@@ -939,10 +957,10 @@ This community-driven project aims to provide a set of benchmarks for various pr
 
 #### Benchmarking methodology
 
-We took a sample of 6 benchmarks from the suite and compared the performance of our interpreter to the performance of
+We took a sample of six benchmarks from the suite and compared the performance of our interpreter to the performance of
 .NET 7.
 The sample was chosen based on its required features.
-Some of the benchmarks use AVX instructions, which are not supported by our interpreter.
+Some benchmarks use AVX instructions, which are not supported by our interpreter.
 Furthermore, there were additional intrinsics that we omitted at the time of writing the specification.
 The benchmarks had to be further simplified to be compatible with our interpreter.
 These simplifications are almost entirely related to the lack of support for threads and tasks; however, some simple
@@ -952,7 +970,7 @@ For example, formatted output and string interpolation were replaced with string
 Due to the fact that the benchmarks were stripped of multithreading, the performance of .NET 7 greatly differs from the
 results shown on the benchmark game website.
 With some benchmark runs taking over 30 seconds in .NET 7 release mode, we anticipated that our interpreter would be
-much slower and decided to limit the number of iterations to 3, though any arbitrary number could be chosen.
+much slower and decided to limit the number of iterations to three, though any arbitrary number could be chosen.
 
 We decided not to compare our interpreter to BACIL, as it was never our goal to outperform it.
 Instead, we wanted to compare our interpreter to the .NET runtime, as it is the most popular implementation of the
@@ -997,7 +1015,9 @@ The script then runs the benchmarks and outputs summaries to the standard output
 
 After cleaning the solution, the script compiles the benchmarks in the release mode.
 Executables are then collected and run with both .NET and CILOSTAZOL.
-As stated above, we run 3 iterations of each benchmark.
+As stated above, we run three iterations of each benchmark.
+Standard output and standard error are redirected to `/dev/null` to avoid any overhead.
+The validation of the output is done when running tests in Maven, where the same benchmarks are run with small inputs.
 
 During each run, we measure the elapsed time and the memory usage.
 We do so by running the benchmark in a separate process and probing it from another thread.
@@ -1010,7 +1030,7 @@ We probe the process and its children every 100ms (configurable) and record the 
 Lastly, CPU usage is measured using the *psutil* package as well.
 The result is a percentage of CPU usage for each core/thread.
 
-The elapsed time and memory usage are then averaged over the 3 iterations, while the CPU usage is reported for the
+The elapsed time and memory usage are then averaged over the three iterations, while the CPU usage is reported for the
 middle iteration.
 
 The output is in the following format:
@@ -1077,8 +1097,111 @@ still often switched to messaging or online calls when some questions or notes a
 
 ## Appendix
 
-- co je potreba ke spusteni
-- jak to spustit
-- finaliyace co vsechno jsme stihli v ramci projektu
+### User guide
 
-> TODO: How to run it (inspirace z TestsAndBenchmarks/Runner/main.py, kde CILOSTAZOL je spousten)
+#### Prerequisites
+
+There are two main ways of running CILOSTAZOL.
+Firstly, one can run CILOSTAZOL on GraalVM, which is the recommended way.
+Secondly, one can run CILOSTAZOL on stock JDK.
+
+The latter case is simpler.
+One only needs to have Java 17 installed and recognized by Maven.
+Truffle dependencies are then downloaded automatically.
+
+The former case requires GraalVM to be installed.
+GraalVM can be downloaded from the [GraalVM website](https://www.graalvm.org/downloads/) or installed using SDKMAN.
+The current available version for Java 17 is *Oracle GraalVM 17.0.8*, although before changing the versioning scheme, 
+the version used for development was *Oracle GraalVM 22.3.0*.
+
+The downloaded JDK works as any other.
+If the user has properly set up the JAVA_HOME environment variable, the JDK is automatically recognized.
+It can be checked by running `java --version` from the terminal.
+The output should look like this:
+
+```
+java version "17.0.8" 2023-07-18 LTS
+Java(TM) SE Runtime Environment Oracle GraalVM 17.0.8+9.1 (build 17.0.8+9-LTS-jvmci-23.0-b14)
+Java HotSpot(TM) 64-Bit Server VM Oracle GraalVM 17.0.8+9.1 (build 17.0.8+9-LTS-jvmci-23.0-b14, mixed mode, sharing)
+```
+
+Or like this for older versions:
+
+```
+java 17.0.4 2022-07-19 LTS
+Java(TM) SE Runtime Environment GraalVM EE 22.2.0 (build 17.0.4+11-LTS-jvmci-22.2-b05)
+Java HotSpot(TM) 64-Bit Server VM GraalVM EE 22.2.0 (build 17.0.4+11-LTS-jvmci-22.2-b05, mixed mode, sharing)
+```
+
+The selected build system is Maven.
+Maven can be installed using the package manager of the user's operating system or downloaded from the
+[Maven website](https://maven.apache.org/download.cgi).
+The version used for development was *Apache Maven 3.8.5*.
+Ensure that Maven is using your preferred JDK by running `mvn --version` from the terminal.
+
+In order to run tests, one should have .NET installed.
+The version used for development was .NET 7.0.2, and we recommend using versions of .NET 7.
+The .NET SDK can be downloaded from the [Microsoft website](https://dotnet.microsoft.com/download/dotnet/7.0).
+It is enough to download the runtime, the entire SDK is not needed.
+
+Lastly, one needs to have Python 3 installed in order to run external benchmarks.
+The version used for development was Python 3.10.6, but any version of Python 3 should work.
+Packages needed for running benchmarks using the Python script are listed in the *requirements.txt* file in the given 
+repository.
+
+#### Running CILOSTAZOL
+
+Once the user has selected his JDK preference, he can run CILOSTAZOL.
+The source code is available in the *CILOSTAZOL* repository on [GitHub](https://github.com/Softwarovy-projekt/Cilostazol).
+The project is built using Maven, and it can be done by running `mvn package` from the root of the repository.
+This will build the project and run all tests.
+Note that running tests in the *tests* package takes up to 10 minutes.
+The tests can be skipped by running `mvn package -Dmaven.test.skip`.
+
+As a result, we get the following jar files:
+- *launcher.jar* - the main jar file that can be used to run CILOSTAZOL
+- *cil-language.jar* - the jar file containing the CILOSTAZOL language and its parser
+- *cil-parser-1.0-SNAPSHOT.jar* - a jar file containing the parser for the CIL language, hidden to the user
+- *tests-1.0-SNAPSHOT.jar* - a jar file containing the tests for the CIL language, hidden to the user
+
+Maven does two types of shading.
+First, the *cil-language.jar* provides the language and all its dependencies.
+This is important as we will be providing the language as its own artifact.
+Second, the *launcher.jar* provides the launcher and uses the *cil-language.jar* as a dependency.
+
+The *launcher.jar* can be run using `java -jar <path>/launcher.jar`.
+This by itself only prints the help message.
+If we want to run a CIL program, we need to append *cil-language.jar* to the Truffle class path.
+Running `java -Dtruffle.class.path.append=<path>/cil-language.jar -jar <path>/launcher.jar` now shows the CIL language 
+support in the help message.
+
+Finally, if we run `java -Dtruffle.class.path.append=<path>/cil-language.jar -jar <path>/launcher.jar --cil.libraryPath=<path>/Microsoft.NETCore.App/7.0.3/ <path>/nbody-2.dll`,
+we successfully run the interpreter on the *nbody-2.dll* program.
+
+This way, we parametrize the launch of the interpreter to allow for different versions of .NET and different versions 
+of the interpreter using the same launcher.
+
+The project can be opened in IntelliJ IDEA as a Maven project.
+This way, the user can run the project from the IDE and debug it.
+During development, this was the preferred way of running the project.
+
+#### Running benchmarks
+
+Our Python benchmark runner available on [GitHub](https://github.com/Softwarovy-projekt/TestsAndBenchmarks) uses the 
+commands described above to run benchmarks.
+
+Similarly to running from the command line, the user needs to specify the path to the launcher, the language, and .NET 
+libraries.
+Additionally, the script requires a path to the .NET runtime, which is used to run the benchmarks.
+
+Below are the available options for the script:
+
+```
+--cilostazol <Path to the CILOSTAZOL launcher>
+--cilostazolLanguage <Path to the CILOSTAZOL language>
+--dotnet <Path to the .NET runtime> (Default: dotnet)
+--dotnetLibrary <Path to the .NET library> (E.g., Microsoft.NETCore.App/x.y.z)
+--benchmarks <Path to the benchmarks> (Default: ../Benchmarks)
+```
+
+After installing the necessary packages from the *requirements.txt* file, the script can be run using `python3 main.py`.
