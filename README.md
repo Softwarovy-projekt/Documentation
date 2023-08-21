@@ -223,7 +223,7 @@ specification for executable code and the environment in which it runs.
 
 CLI specifies two kinds of entities **value types** and **reference types**. Values are simple bit patterns that we
 have to interpret in a correct way. This might be integer types or floating point types. Objects on the other hand are
-self-typing. That means that the type information is stored in its representation. On the graph taken from the ecma
+self-typing. That means that the type information is stored in its representation. On the graph taken from the ECMA
 standard we can see a diagram of the type system.
 
 > Diagram from of type entities from the CLI standard. 
@@ -255,8 +255,9 @@ CLI exposes several differences between objects and strings.
 Strings have specialized instructions for installations.
 Object is instantiated using the `NEWOBJ` op code, yet the string uses the `LDSTR` opcode. After that, we may treat it
 like an ordinary object. We will have to be able to parse and interpret the source code if the standard library where
-the `String` class is defined. It also includes two important fields - length and an array of characters. Those two
-together carry the main string information.
+the `String` class is defined. 
+The biggest difference is data representation and its description in CIL metadata where we can find that the object consists of two fields - length(`int`) and a first char(`char`).
+Although .NET runtime treats the `char` as a `char*` in the implementation and the array of bytes representing string is embedded into the object itself.
 
 #### Managed pointers
 
@@ -518,10 +519,10 @@ The solution consists of many parts responsible for distinct purposes.
 We provide brief descriptions of them to make the navigation between them easier.  
 The project solution contains four modules:
 
-- **cil-parser** - It contains a low-level parser of cil metadata which is not dependent on the rest of the interpreter.
+- **cil-parser** - It contains a low-level parser of CIL metadata which is not dependent on the rest of the interpreter.
   It provides API for navigating through the CIL metadata tables.
-- **language** - This is the core module of the interpreter. It contains a definition of cil symbols like *class* or *method*, an
-  object model holding user data, nodes representing cil code, factories using the mentioned parser yielding the
+- **language** - This is the core module of the interpreter. It contains a definition of CIL symbols like *class* or *method*, an
+  object model holding user data, nodes representing CIL code, factories using the mentioned parser yielding the
   symbols, static analysis of types, a context holding several caches, and tests verifying metadata representation.
 - **launcher** - It is a launcher of the interpreted language.
 - **tests** - It contains a custom framework for testing end-to-end tests taking *.cs* sources, compiling them,
@@ -535,7 +536,7 @@ Although the detailed description of interpreting CIL will be given later, we al
 pipeline to make understanding each part of the process easier.
 We compute everything lazily in CILOSTAZOL, however, we use the arrows in the picture in the opposite direction to
 indicate data flow.
-Which means that when the request to execute cil code arrives, we start to locate the required *.dll* files. Once found, we
+Which means that when the request to execute CIL code arrives, we start to locate the required *.dll* files. Once found, we
 use **symbol factories** to transform the files into application data. The factories use **low-level parser** to obtain
 meta tables and streams.
 Then, it starts to assemble them into symbols that are used during the interpretation.
@@ -587,7 +588,8 @@ The symbol factories are responsible for interpreting data obtained from the low
 symbols which we describe later.
 We don't see a parallel part in the BACIL because it was strongly connected with BACIL's type system.
 We think that this architecture was wrong because of future maintainability and code extensibility.
-We separated symbol representation and creation by providing factories for each type of symbol. Our architecture closely follows the ECMA specification as well as Roslyn implementation, which can be a good sign for correctness, extensibility and maintainability. The nomenclature of the symbols also follows the ECMA specification and makes it easier to understand the code.
+We separated symbol representation and creation by providing factories for each type of symbol. 
+Our architecture closely follows the ECMA specification and is inspired by Roslyn implementation, which can be a good sign for correctness, extensibility and maintainability. The nomenclature of the symbols also follows the ECMA specification and makes it easier to understand the code.
 
 Because we don't need to parse every method and class in the assembly to evaluate simple code, we use lazy evaluation of
 metadata, which would take a long time.
@@ -599,7 +601,7 @@ We have several types of caches for different types of symbols.
 The context contains separated caches for generic types, instantiated generic types, arrays, and generic method
 instantiations.
 `NamedTypeSymbol`s have caches for defined methods and fields.
-Because of the compressed design of cil metadata, we also use several reverse indices in `ModuleSymbol` to help resolve symbols
+Because of the compressed design of CIL metadata, we also use several reverse indices in `ModuleSymbol` to help resolve symbols
 from caches.
 These indices are `MethodIndex` and `FieldIndex` respectively.
 It is a tuple of an index and a method or field definition in a given module.
@@ -624,7 +626,7 @@ More info about `SymbolResolver` can be found in the following [type system sect
 ### Type system
 
 In this section, we describe the system of symbols heavily used in CILOSTAZOL to represent CIL components. We also talk
-about how cil application data are represented during the runtime.
+about how CIL application data are represented during the runtime.
 
 #### Symbols
 
@@ -699,7 +701,7 @@ This architecture makes handling methods much more clean and easy to navigate th
 For example method contains only exception handlers which are in the method
 (`catch` clauses) and are extracted from metadata.
 
-The last group of symbols represents high-level cil containers.
+The last group of symbols represents high-level CIL containers.
 `ModuleSymbol` is responsible for creating `TypeSymbols` defined locally.
 `AssemblySymbol` is responsible for creating `TypeSymbols` defined in their modules.
 
@@ -935,7 +937,7 @@ we can use the `CILOSTAZOLContext` to get the necessary services.
 Whenever a method is missing an implementation or needs a custom implementation, we change its node to a
 `CILRuntimeSpecificMethodNode`.
 
-A is missing an implementation whenever its Relative Virtual Address (RVA) is zero.
+A method is missing an implementation whenever its Relative Virtual Address (RVA) is zero.
 As a result, we cannot interpret the method, since we don't know its instructions.
 This can happen when the method has a `MethodImplOptions.InternalCall` attribute and refers to a method, which is
 implemented by the runtime.
@@ -1441,7 +1443,7 @@ There are two exceptions.
 We decided to not do *Polyglot module* because there were unexpected problems with the parser.
 Even before the implementation, we asked the initial author of BACIL where can arise potential problems and the parser was not part of it.
 In the end, the parser and type system were major parts, which took us more time than we expected.
-Although, we don't think we could better time estimation in the time when we investigated BACIL and promised features.
+Although, we don't think we could do better time estimation in the time when we investigated BACIL and promised features.
 Because of these issues, we didn't make polyglot API, which can be considered *nice-to-have* feature and doesn't have a significant influence on other parts of the implementation.
 
 `decimal` value was not implemented because there was no exact mapping between this type and Java primitive type. It is not impossible to make it work; however, we had to solve other unexpected problems with the parser. 
