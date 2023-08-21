@@ -73,6 +73,11 @@ on the level of the .NET runtime and the CIL itself.
   - [Development process](#development-process)
   - [Conclusion](#conclusion)
   - [Appendix](#appendix)
+    - [Overview of promised features](#overview-of-promised-features)
+    - [User guide](#user-guide)
+      - [Prerequisites](#prerequisites)
+      - [Running CILOSTAZOL](#running-cilostazol)
+      - [Running benchmarks](#running-benchmarks)
 
 
 ## Existing technologies
@@ -486,8 +491,8 @@ We provide brief descriptions of them to make the navigation between them easier
 The project solution contains four modules:
 
 - **cil-parser** - It contains a low-level parser of cil metadata which is not dependent on the rest of the interpreter.
-  Basically, It provides API for navigating through CIL meta tables.
-- **language** - It is the core of the interpreter. It contains a definition of cil symbols like *class* or *method*, an
+  It provides API for navigating through the CIL metadata tables.
+- **language** - This is the core module of the interpreter. It contains a definition of cil symbols like *class* or *method*, an
   object model holding user data, nodes representing cil code, factories using the mentioned parser yielding the
   symbols, static analysis of types, a context holding several caches, and tests verifying metadata representation.
 - **launcher** - It is a launcher of the interpreted language.
@@ -502,18 +507,18 @@ Although the detailed description of interpreting CIL will be given later, we al
 pipeline to make understanding each part of the process easier.
 We compute everything lazily in CILOSTAZOL, however, we use the arrows in the picture in the opposite direction to
 indicate data flow.
-So, when the request for execute cil code arrives, we start to locate the required *.dll* files. Since we have them, we
+Which means that when the request to execute cil code arrives, we start to locate the required *.dll* files. Once found, we
 use **symbol factories** to transform the files into application data. The factories use **low-level parser** to obtain
 meta tables and streams.
 Then, it starts to assemble them into symbols that are used during the interpretation.
-Because this process can take a long time, we extensively use caches located in the context.
-Since we have the necessary symbols, we find an assembly entry point and ask the execution node to execute it.
-The execution node is created by a custom method, which collects necessary info about the method.
+Because this process can take a long time, we extensively use caches located in the context. Each symbol is therefore materialized only once.
+Since we have the necessary symbols, we find an assembly entry point and make the execution node execute it.
+The execution node is created by a custom method, which collects necessary information about the method.
 The execution node cares about many things. It uses our static analysis, which is made on the first execution of the
-method to determine correct versions of CIL opcodes, prepares the frame, nodeized heavily used instructions, and handles
+method to determine correct versions of CIL opcodes, prepares the frame, nodeizes heavily used instructions, and handles
 exceptions.
 During the evaluation of the code, there is a need to resolve symbols referred in metadata.
-**SymbolResolver** was made to provide a unified API for it.
+**SymbolResolver** was made to provide a unified API for it in order to make sure every resolved symbol gets properly cached.
 **GuestAllocator** is used to create objects based on symbols.
 In the end, because some methods from the standard library use unsafe code or other constructs which are not supported
 by the CILOSTAZOL, we provide a custom implementation of commonly used methods used in our benchmarks to be able to use
@@ -526,7 +531,8 @@ them.
 ### Parser
 
 The parser can be divided into two parts.
-We call the first part low-level parser which handles navigation between CIL meta tables and streams.
+We call the first part low-level parser which handles navigation between CIL meta tables and streams. This part consists mostly of data classes that corrsepond to the tables as defined in the ECMA-335 standard.
+
 The second part is contained in dedicated symbol factories focusing on a small part of the metadata.
 
 #### Low-level parser
@@ -534,27 +540,26 @@ The second part is contained in dedicated symbol factories focusing on a small p
 We took the low-level parser from the BACIL project and transformed it into a separated module since it is independent
 of the remaining parts of the interpreter.
 Because metadata contains lots of tables that would behave in a similar way, the code generator was used to generate
-Java classes according to simpler tables description given in simple format.
+Java classes according to simpler tables description given in simple format. This was done already in BACIL.
 When the generator is run, a dedicated class for each table is created.
 The table consists of rows describing a part of the metadata.
 The rows are implemented as smart pointers using the iterator pattern for better usage.
 The columns can be constants or other pointers to different tables or streams.
 Streams contain different kinds of signatures describing other metadata or string constants.
-These signatures have to be implemented manually because of harder parsing.
+These signatures have to be implemented manually because of harder parsing constraints.
 The signatures are part of the low-level parser as well.
 
 We noticed some bugs in the table descriptions, which we fixed according to the ECMA specification.
 There was also an issue regarding the low-level interpretation of indices, which was fixed as well.
-In the end, we reimplemented the signatures since the former implementation just parses a necessary part of the info
-required in BACIL.
+In the end, we reimplemented the signatures since the former implementation just parsed necessary part of the information required by BACIL. We implemented parsing for all features and not only those that we require. Thereofre there are some fields and methods that might not be used anywhere.
 
 #### Symbol factories
 
 The symbol factories are responsible for interpreting data obtained from the low-level parser and transforming them into
-symbols described later.
+symbols which we describe later.
 We don't see a parallel part in the BACIL because it was strongly connected with BACIL's type system.
 We think that this architecture was wrong because of future maintainability and code extensibility.
-So we separated symbol representation and creation by providing factories for each type of symbol.
+We separated symbol representation and creation by providing factories for each type of symbol. Our architecture closely follows the ECMA specification as well as Roslyn implementation which can be a good sign for corectness, extensibility and maintainability. The nomenclature of the symbols also follows the ECMA specification and makes it easier to understand the code.
 
 Because we don't need to parse every method and class in the assembly to evaluate simple code, we use lazy evaluation of
 metadata, which would take a long time.
@@ -566,15 +571,16 @@ We have several types of caches for different types of symbols.
 The context contains separated caches for generic types, instantiated generic types, arrays, and generic method
 instantiations.
 `NamedTypeSymbol`s have caches for defined methods and fields.
-Because of the compressed design of cil metadata, we also use several indices in `ModuleSymbol` to help resolve symbols
-from caches.
+Because of the compressed design of cil metadata, we also use several reverse indices in `ModuleSymbol` to help resolve symbols
+from caches. These indices are `MethodIndex` and `FieldIndex` repsectively. It is a couple of an index and a method or field definition in given module. This is very helpful because many of the opcodes provide row pointer to a field or a method that is supposed to be called together with the opcode. Take the `LDFLD` opcode as an example which carries metadata token pointing to a `fieldref` or `fielddef` metadata table. Each of these tables contains information about a specific field implementation. Using the `FieldIndex` we can quickly query the parsed field without difficult materialization. The same applies to `MethodIndex` and `call` opcode. The use of those indices is a implementation detail hidden behind the API.
+
 To be sure that we always use already cached symbols, we use `SymbolResolver` which is responsible for handling all
 types of metadata references and returning appropriate symbols.
 Since we use the `SymbolResolver` only, there is just one option, how the `NamedTypeSymbol`, `AssemblySymbol`,
 or `MethodSymbol` is created. The context is the only one that calls further methods for creating these symbols when
 it is not found in the caches. Except for non-instantiated methods, which are created lazily and cached in
 the `NamedTypeSymbol`.  
-More info about `SymbolResolver` can be found in the type system section.
+More info about `SymbolResolver` can be found in the following [type system section](#type-system).
 
 ### Type system
 
@@ -597,26 +603,56 @@ All symbols have a common predecessor, `Symbol`.
 For testing purposes, the symbol currently contains only one method used to get the `CILOSTAZOLContext`. The reason is
 given in the tests section.
 
-`TypeSymbol` contains several additional data related to types.
-It contains the info on how it is represented on the stack and inside the constructed type (meaning `class`
+ - `TypeSymbol` contains several additional data related to types such as `SystemType` or `StackTypeKind`. This information is needed in order to correctly represent the type on stack and inside the constructed type (meaning `class`
 or `struct`).
-It is also required a predecessor of type, which can be used as an input into `TypeMap` mentioned later.
+It is also required a predecessor of type, which can be used as an input into `TypeMap` used for generic types. This map is described in more detail later section about [generics](#generics).
 It also provides an API for determining the assignability of CIL types.
 
-`ReferenceTypeSymbol` represents managed pointers in CIL which consist of information about the actual location of the
+ - `ReferenceTypeSymbol` represents managed pointers in CIL which consist of information about the actual location of the
 pointed entity (local variable, argument, object field, or array element), and the actual type of pointed object.
 
-`ArrayTypeSymbol` describes CIL arrays.
+ - `ArrayTypeSymbol` describes CIL arrays. We can consider this symbol as a special case of `NamedTypeSymbol` because it is one but it also contains type of the array's elements.
 
-> TODO: multi-arrays
+ - `MultidimensionalArrayTypeSymbol` is a special case of `ArrayTypeSymbol`. This array is used to distinguish between vector and non-vector arrays since both have completely different semantics. `MultidimensionalArrayTypeSymbol` exists to help navigate use the `MultidimensionalArray` implementation which serves the role of classes that would be otherwise generated in the runtime. 
+   - The type is defined in the `CILOSTAZOLInternalImpl` C# solution. Whenever we encounter an array with rank bigger than one we opt out to creating the `MultidimensionalArrayTypeSymbol` instead of the `ArrayTypeSymbol` and as a base we use the `MultidimensionalArray` implementation from the mentioned solution. This class contains the exact same methods that are needed to operate on those arrays. The following code snippet shows what opcodes are generated when dealing with multidimensional arrays.
 
-`NamedTypeSymbol` describes named types in CIL including generic ones. It consists of other symbols for fields or
-methods.
+```csharp
+/*
+IL_0000: ldc.i4.2
+IL_0001: ldc.i4.5
+IL_0002: newobj instance void int32[0..., 0...]::.ctor(int32, int32)
+IL_0007: stloc.0
+IL_0008: ldloc.0
+IL_0009: ldc.i4.1
+IL_000a: ldc.i4.2
+IL_000b: ldc.i4.5
+IL_000c: call instance void int32[0..., 0...]::Set(int32, int32, int32)
+IL_0011: ldloc.0
+IL_0012: ldc.i4.1
+IL_0013: ldc.i4.2
+IL_0014: call instance int32 int32[0..., 0...]::Get(int32, int32)
+IL_0019: stloc.1
+*/
+int[,] a = new int[2,5];
+a[1, 2] = 5;
+var b = a[1, 2];
+```
+-
+  - We can see call of an ordinary constructor that takes two indices. Writing and reading array elements is done via `Set` and `Get` (instead of `LDELEM` and `STELEM` opcodes as it is with vectors) methods on an instance of local variable at index 0 (`ldloc.0`).
+
+  - Virtual methods are resolved in a way that we first look for override implementations in our instantiated type. In our case that would be be `MultidimensionalArray`. The only thing that is left is to have implementation of `Set` and `Get` methods in the `MultidimensionalArray` class. From analysis of the `System.Array` type we can see that there are explicit implementations for 2D and 3D arrays. Arrays of higher dimensions are resolved using the variable number of arguments. The signature of such method simply contains an array of indices. To support higher dimensions we would need to implement support for attributes. This is out of scope of this project. Our chosen approach of having one predefinded class handling all dimensions would be insufficient, because variable number of arguments is only allowed as the last argument. However the signature of `Set` method contains the value as the last parameter. This was an oversight during the analysis which happened parially due to incorect understanding of how exacly does the generated array class looks like. We have decided to support only 2D and 3D arrays with a workaround to up to 5D arrays.
+
+  - Note that the `MultidimensionalArray` implements all the necessary interfaces that a normal array should. To be completely correct we would have to extend the class by `System.Array` class which is not possible. The type is one of special types that can not be used as a base class. The reason is that it is a special type that is handled by the runtime. The same applies to `System.ValueType`, `System.Enum` or `System.Delegate` types. The multidimensional array is saved in a simple array with flattened indexation the same way it is done in the `GetFlattenedIndex` method in the `System.Array` which is used for exactly this purpose.
+
+ - `NamedTypeSymbol` describes named types in CIL including generic ones. It consists of other symbols for fields or
+methods. 
+  - Note that even value types have their `NamedTypeSymbol` which is useful for their boxed variants.
+
+ - `TypeParameterSymbol` serves as a placeholder for generic types. Before they are substituted with actual types, they are tracked as `TypeParameterSymbol`.
 
 On the other side, we have `MethodSymbol` which can be executed.
-The ancestors of that symbol are described in the following section.
-It consists of other symbols for parameters or exception handling, which is basically a table of exception handlers
-containing info about the protected sections and etc...
+The ancestors of that symbol are described in the [following section](#generics) about generics.
+`MethodSymbol` consists of other method specific symbols such as `ParameterSymbol`, `ReturnSymbol` and `ExceptionHandlerSymbol`. They usually contain some `TypeSymbol` which they represent. This architecture makes handling methods much more clean and easy to orient in. For example method contains only exception handlers which are in the method (`catch` clauses) and are extracted from metadata.
 
 The last group of symbols represents high-level cil containers.
 `ModuleSymbol` is responsible for creating `TypeSymbols` defined locally.
@@ -633,21 +669,20 @@ An entity can become substituted when it contains another entity (excluding type
 not belonging to the containing entity.
 An entity becomes constructed when it is instantiated by types.
 
-> You can see the examples below.
->
-> ```csharp
-> class A<Ta> 
-> {
->   void Foo(Ta p1) {}   
-> }
-> class B<Tb> : A<Tb> {} // A<Tb>.Foo(Tb p1) is a substituted method.
-> ```
+You can see an example of substitution below.
+```csharp
+class A<Ta> 
+{
+  void Foo(Ta p1) {}   
+}
+class B<Tb> : A<Tb> {} // A<Tb>.Foo(Tb p1) is a substituted method.
+```
 
 This observation led to the creation of three types of method symbols. MethodSymbol represents an opened generic entity.
 The `SubstitutedMethodSymbol` represents a substituted entity and the `ConstructedMethod` symbol represents the last
 option.
 
-We didn't make a `SubstituteNamedTypeSymbol` because we don't support nested classes.
+We didn't make a `SubstituteNamedTypeSymbol` because we don't support nested classes but the principle is the same and its implementation should not be very difficult.
 
 Instantiation of generic entities is done by `TypeMap`.
 When we instantiate a type or method, we create a type map that maps type parameters to provided type arguments.
@@ -655,6 +690,8 @@ In the case of the substituted method, we provide this type map of a constructed
 the `SubstitutedMethodSymbol`.
 When we want to find out entities of constructed types of methods, we use this map to map the entities contained in the
 map.
+
+This approach allows us to create all open, substituted and constructed entities.
 
 #### Static object model
 
@@ -701,7 +738,7 @@ Although, the array is embedded into the pair, which means that the string objec
 them for performance reasons.
 This implementation is hidden in CIL metadata which describes `string` as an object with two fields of type `int`
 and `char`.
-We tried to save the information about the fields and represent `string` as a static object with two fields of `int` and
+We save the information about the fields and represent `string` as a static object with two fields of `int` and
 an array of `char` types.
 
 #### Arrays
@@ -710,12 +747,12 @@ There are single and multidimensional arrays in CIL.
 We got inspiration from Espresso and represent them as a static object with one field containing a java array of a
 particular type.
 This representation allows us to determine arrays as objects in the rest of the code.
-A multidimensional array is stored as a row-major which is equivalent to CIL.
+As described in the [type system](#type-system) section multidimensional array is stored as a row-major single-dimensional array inside `MultidimensionalArray` type which is equivalent to CIL.
 
 ### Interpreter
 
 In this section, we describe execution of CIL code.
-We got inspiration from Espresso and used one node representing one CIL method.
+Once again we were inspired by Espresso and used one node representing one CIL method.
 However, we are using extra nodes for instructions like `CALL` or `VIRTCALL` in the process called nodeization in BACIL.
 We removed custom handling of evaluation stack used in BACIL and replaced it by using Truffle `VirtualFrame`.
 We added exception handling and OSR.
@@ -750,10 +787,8 @@ We also cache `string` literals in our `GuestAllocator` because they are immutab
 
 `struct`s are represented in the same way as classes which is inefficient in comparison with .NET where the `struct`s
 are placed on the stack (if they can be placed there).
-However, we didn't find a better way how to do it in Truffle.
-We change the behavior of passing arguments, assignments etc. based on the `TypeSymbol` of `StaticObject`.
-
-> TODO: mention how work multi-arrays
+However, we didn't find a better way how to do this in Truffle.
+We change the behavior of passing arguments, assignments etc. based on the `TypeSymbol` of the `StaticObject`.
 
 #### Type resolution
 
