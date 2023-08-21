@@ -1079,6 +1079,50 @@ still often switched to messaging or online calls when some questions or notes a
 
 - co je potreba ke spusteni
 - jak to spustit
-- finaliyace co vsechno jsme stihli v ramci projektu
-
 > TODO: How to run it (inspirace z TestsAndBenchmarks/Runner/main.py, kde CILOSTAZOL je spousten)
+
+### Overview of promised features
+
+We set a list of features that we wanted to accomplish in the specification.
+We provide an overview of completed features and give a reason for those ones, we didn't make.
+
+| Task | State | Note |
+| --- | --- | --- |
+| 0.0.0 | Completed | We didn't do CIL code inlining because it is voluntary and we had to deal with other problems which occurred during implementation. |
+| 0.0.1 | Completed | - |
+| 0.0.2 | Not completed | It is voluntary and we had to deal with other problems which occurred during implementation.
+| 0.0.3 | Completed | We were able to interpret standard library exceptions and use them. However, runtime information stored in the exceptions was out of the scope of this work because of other unsupported features used by them. |
+| 0.0.4 | Completed | - |
+| 0.0.5 | Not completed | ??? |
+| 0.1.0 | Completed | - |
+| 0.1.1 | Almost completed | We don't support the `decimal` representation. |
+| 0.1.2 | Completed | - |
+| 1.0.0 | Completed | - |
+| 1.0.1 | Completed | - |
+| 1.0.2 | Completed | - |
+| 1.0.3 | Completed | - |
+| 1.0.4 | Completed | - |
+| 1.0.5 | Not completed | ??? |
+| 1.1.0 | Not completed | Unexpected problems with different parts of the project. |
+| 1.1.1 | Not completed | Unexpected problems with different parts of the project. |
+| 1.1.2 | Not completed | Unexpected problems with different parts of the project. |
+| 1.1.3 | Not completed | Unexpected problems with different parts of the project. |
+| 1.2.0 | Completed | - |
+| 1.2.1 | Completed | - |
+| 1.2.2 | Not completed | It is voluntary and we had to deal with other problems which occurred during implementation. |
+
+As you can see, we completed almost all promised features, which were not voluntary.
+There are two exceptions.
+
+We decided to not do *Polyglot module* because there were unexpected problems with the parser.
+Even before the implementation, we asked the initial author of BACIL where can arise potential problems and the parser was not part of it.
+In the end, the parser and type system were major parts, which took us more time than we expected.
+Although, we don't think we could better time estimation in the time when we investigated BACIL and promised features.
+Because of these issues, we didn't make polyglot API, which can be considered *nice-to-have* feature and doesn't have a significant influence on other parts of the implementation.
+
+`decimal` value was not implemented because there was no exact mapping between this type and Java primitive type. It is not impossible to make it work, however, we had to solve other unexpected problems with the parser. 
+
+
+
+
+
