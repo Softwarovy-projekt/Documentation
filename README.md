@@ -1225,7 +1225,28 @@ The following results were taken on a machine with an Apple M1 chip with 4 perfo
 For this ARM-based chip, we used the aarch64 version of .NET 7.0.2 and the aarch64 version of Oracle GraalVM for JDK
 17.0.8.
 
-> TODO: Add results
+> Performance comparison against .NET 7.0.2 on Apple M1
+>
+> ![performance](./img/Performance.svg)
+
+The results show that our interpreter is significantly slower than .NET 7 when executing both release and debug builds.
+This might be due to a variety of factors.
+Parsing metadata on demand implies that we cannot perform PE to a great extent.
+Furthermore, other than OSR, we did not implement any explicit optimizations.
+While BACIL showed more promising results, we now know the level of technical debt that it carried and the corners that
+had to be cut in order to show great performance.
+
+> Memory usage comparison against .NET 7.0.2 on Apple M1
+>
+> ![memory](./img/Memory.svg)
+
+Memory usage of CILOSTAZOL was very consistent across all benchmarks.
+It usually as in the range of 100-130MB, even for the smallest benchmarks.
+.NET 7, on the other hand, showed a much more varied memory usage.
+It managed to keep the memory usage low when possible, hovering around 4MB.
+On more intensive tasks, the memory usage would double to around 8-10MB.
+This shows how mature the .NET runtime is and how much effort has been put into optimizing it for workloads such as
+serverless computing.
 
 ## Development process
 
