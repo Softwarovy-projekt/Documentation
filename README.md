@@ -71,6 +71,7 @@ on the level of the .NET runtime and the CIL itself.
       - [Benchmarking script](#benchmarking-script)
       - [Results](#results)
   - [Development process](#development-process)
+  - [Feature improvements](#feature-improvements)
   - [Conclusion](#conclusion)
   - [Appendix](#appendix)
     - [Overview of promised features](#overview-of-promised-features)
@@ -1247,7 +1248,28 @@ The following results were taken on a machine with an Apple M1 chip with 4 perfo
 For this ARM-based chip, we used the aarch64 version of .NET 7.0.2 and the aarch64 version of Oracle GraalVM for JDK
 17.0.8.
 
-> TODO: Add results
+> Performance comparison against .NET 7.0.2 on Apple M1
+>
+> ![performance](./img/Performance.svg)
+
+The results show that our interpreter is significantly slower than .NET 7 when executing both release and debug builds.
+This might be due to a variety of factors.
+Parsing metadata on demand implies that we cannot perform PE to a great extent.
+Furthermore, other than OSR, we did not implement any explicit optimizations.
+While BACIL showed more promising results, we now know the level of technical debt that it carried and the corners that
+had to be cut in order to show great performance.
+
+> Memory usage comparison against .NET 7.0.2 on Apple M1
+>
+> ![memory](./img/Memory.svg)
+
+Memory usage of CILOSTAZOL was very consistent across all benchmarks.
+It usually as in the range of 100-130MB, even for the smallest benchmarks.
+.NET 7, on the other hand, showed a much more varied memory usage.
+It managed to keep the memory usage low when possible, hovering around 4MB.
+On more intensive tasks, the memory usage would double to around 8-10MB.
+This shows how mature the .NET runtime is and how much effort has been put into optimizing it for workloads such as
+serverless computing.
 
 ## Development process
 
@@ -1286,6 +1308,17 @@ As soon as we've reached a point where problems could be divided into reasonably
 traditional approach of creating a branch for each task and merging it into master via a pull request. Although we have
 still often switched to messaging or online calls when some questions or notes arose during reviews.
 
+## Feature improvements
+
+The next step would be support type and accessibility checking which need to use already parsed metadata and add checkers into methods handling instructions in `CILMethodNode`.
+
+We didn't investigate threads, although, it would be needed to implement native calls and probably implement some internal methods provided by the .NET runtime itself.
+
+We didn't investigate native calls as well, although it could be done by invoking Java JNI or in the case of uncommon conventions, providing our own trampolines implemented in C++ and calling it from Java.
+
+To be able to fully use the standard library, all CIL constructs have to be supported. It means to also support nested classes, properties, methods semantics, etc.. which is out of the scope of this work.
+However, adding mentioned constructs to the current type system shouldn't be difficult since our symbols system was designed to be extendible from the start. 
+
 ## Conclusion
 
 - achieved goals
@@ -1304,7 +1337,7 @@ We provide an overview of completed features and give a reason for those ones, w
 | 0.0.2 | Not completed | It is voluntary and we had to deal with other problems which occurred during implementation.
 | 0.0.3 | Completed | We were able to interpret standard library exceptions and use them. However, runtime information stored in the exceptions was out of the scope of this work because of other unsupported features used by them. |
 | 0.0.4 | Completed | - |
-| 0.0.5 | Not completed | ??? |
+| 0.0.5 | Completed | - |
 | 0.1.0 | Completed | - |
 | 0.1.1 | Almost completed | We don't support the `decimal` representation. |
 | 0.1.2 | Completed | - |
@@ -1313,7 +1346,7 @@ We provide an overview of completed features and give a reason for those ones, w
 | 1.0.2 | Completed | - |
 | 1.0.3 | Completed | - |
 | 1.0.4 | Completed | - |
-| 1.0.5 | Not completed | ??? |
+| 1.0.5 | Completed | - |
 | 1.1.0 | Not completed | Unexpected problems with different parts of the project. |
 | 1.1.1 | Not completed | Unexpected problems with different parts of the project. |
 | 1.1.2 | Not completed | Unexpected problems with different parts of the project. |
