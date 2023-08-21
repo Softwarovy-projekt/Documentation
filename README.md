@@ -490,9 +490,43 @@ We created three nodeized instructions: `CALLNode`, `NEWOBJNode`, and `JMPNode`.
 
 #### OSR
 
-OSR is done by implementing the `BytecodeOSRNode` interface. 
-It consists of checking every jump to the instruction on the lower address and trying to do OSR by invoking Truffle API.
-When Truffle decides to do OSR, it invokes implemented `executeOSR(VirtualFrame osrFrame, int target, Object interpreterState)` method passing the actual frame and instruction pointer. It also enables passing user-defined additional data which represents the interpreter state. In our case, we have to share a current position on the stack.
+OSR offers a way to switch from the interpreter to the compiled code mid-method execution when a hot path is detected.
+For AST interpreters, Truffle offers a way of doing this for *free*. 
+The programmer just has to implement certain nodes when working on loops and conditional statements.
+For bytecode interpreters, the programmer has to implement a few more things.
+
+OSR is done by implementing the `BytecodeOSRNode` interface.
+This interface offers methods for us to override that can enable OSR to be triggered and to pass data to the compiled code.
+
+We are required to check every jump to the instruction to an instruction pointer that is less than the current one (a *back-edge*) and attempt to do OSR if it makes sense in the given context.
+Since the logic of checking back-edges is the same for all the jump instructions, we implemented a `beforeJumpChecks(VirtualFrame frame, int curBCI, int targetBCI, int top)` method.
+Should this method encounter a back-edge, it reports it using `BytecodeOSRNode::pollOSRBackEdge`.
+The return value of `pollOSRBackEdge` indicates whether the OSR should be attempted.
+If it should, we do so by calling `BytecodeOSRNode::tryOSR` and passing in the current state.
+From what is available in the `beforeJumpChecks`, we are interested in the target instruction pointer, the frame, and the top of the stack.
+
+It is important that the used state (the top-stack pointer, target instruction pointer, etc.) is a PE constant.
+We check that throughout the dispatch loop using `CompilerAsserts.partialEvaluationConstant(int value)`
+
+It is also possible to pass in handlers and other data, but did not find a use for it.
+Usually, passing in a handler to confirm that the OSR is indeed taking place is a good idea.
+Due to how our tests are set up, we did not need to do this - we simply enable compilation details and get the confirmation of OSR taking place from the logs.
+The easiest way of checking whether the OSR took place is measure the execution time of a hot loop.
+In one such example, the `OSRTests::test`, described below, we measure the execution time of a loop doing arithmetic operations that is executed 100 million times.
+
+```csharp
+ int i = 0;
+ while (i < 100000000)
+ {
+       i = i + 1 + 2 / 2 + 1 + 3 + 4 * 5 / 6 * 7 
+         + 8 - 9 + 10 - 35;
+ }
+ return i;
+```
+
+The measured speedup when using OSR of over 30x confirms that the OSR is indeed taking place to some extent.
+The effect and efficiency of OSR is highly dependent on the code being executed and the PE-friendliness of the interpreter.
+Moving forward, the interpreter should be made more PE-friendly to enable OSR to even more efficient.
 
 ### Launcher
 
